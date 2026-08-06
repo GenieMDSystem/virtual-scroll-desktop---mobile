@@ -1,0 +1,23 @@
+<div class="viewport">
+  <div class="viewport__badge" [attr.data-mode]="mode()">
+    @switch (mode()) {
+      @case ('desktop') {
+        <span>≥1024px · Desktop table</span>
+      }
+      @case ('tablet') {
+        <span>768–1023px · Tablet adaptive (table)</span>
+      }
+      @default {
+        <span>&lt;768px · Mobile cards</span>
+      }
+    }
+  </div>
+
+  <div class="viewport__body">
+    @if (mode() === 'mobile') {
+      <app-patient-mobile-list />
+    } @else {
+      <app-patient-desktop-table />
+    }
+  </div>
+</div>

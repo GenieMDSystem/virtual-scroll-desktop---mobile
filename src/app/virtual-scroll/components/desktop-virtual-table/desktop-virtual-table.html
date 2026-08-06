@@ -1,0 +1,268 @@
+<div
+  class="desktop-shell"
+  [class.desktop-shell--resizing]="resizingKey()"
+>
+  <header class="desktop-shell__meta">
+    <div>
+      <h2>{{ title() }}</h2>
+      <p>
+        {{ dataSource().totalCount() | number }} total ·
+        table {{ tableWidth() }}px / container {{ containerWidth() || '—' }}px ·
+        frozen L {{ leftWidth() }}px / R {{ rightWidth() }}px ·
+        sort {{ externalSorting() ? 'external' : 'internal' }} ·
+        {{ dataSource().strategy }}
+      </p>
+    </div>
+    @if (dataSource().loading()) {
+      <span class="pill pill--loading">Loading…</span>
+    }
+    @if (dataSource().error(); as err) {
+      <span class="pill pill--error">{{ err }}</span>
+    }
+  </header>
+
+  <div
+    class="table-frame"
+    #tableFrame
+    role="region"
+    [attr.aria-label]="ariaLabel()"
+    tabindex="0"
+  >
+    <div class="panes">
+      @if (leftCols().length) {
+        <div class="pane pane--left" [style.width.px]="leftWidth()">
+          <div class="pane-header">
+            @for (col of leftCols(); track col.key) {
+              <div
+                class="th"
+                [class.th--sorted]="sortDirection(col.key)"
+                [class.th--resizing]="resizingKey() === col.key"
+                [class.th--freeze-edge]="$last"
+                [style.width.px]="col.width"
+              >
+                <span class="th__label">{{ col.header }}</span>
+                <span class="th__pin" title="Frozen left">Pin</span>
+                @if (col.sortable) {
+                  <ng-container
+                    *ngTemplateOutlet="sortBtn; context: { $implicit: col }"
+                  />
+                }
+                @if (col.resizable !== false) {
+                  <button
+                    type="button"
+                    class="col-resizer"
+                    [attr.aria-label]="'Resize ' + col.header"
+                    (pointerdown)="startResize(col.key, $event)"
+                  ></button>
+                }
+              </div>
+            }
+          </div>
+
+          <cdk-virtual-scroll-viewport
+            class="pane-viewport"
+            [itemSize]="rowHeight()"
+            [minBufferPx]="rowHeight() * 10"
+            [maxBufferPx]="rowHeight() * 20"
+          >
+            <div
+              class="table-row"
+              *cdkVirtualFor="let row of displayItems(); trackBy: dataSource().trackByIndex"
+              [class.table-row--selected]="row && isSelected(row)"
+              [style.height.px]="rowHeight()"
+              [style.width.px]="leftWidth()"
+              role="row"
+              (click)="row && onRowClick(row, $event)"
+            >
+              @if (row; as item) {
+                @for (col of leftCols(); track col.key) {
+                  <div
+                    class="td"
+                    [class.td--freeze-edge]="$last"
+                    [style.width.px]="col.width"
+                    role="cell"
+                  >
+                    @if (cellTemplateMap().get(col.key); as tpl) {
+                      <ng-container
+                        *ngTemplateOutlet="tpl; context: { $implicit: item, row: item, column: col }"
+                      />
+                    } @else {
+                      {{ cellText(item, col) }}
+                    }
+                  </div>
+                }
+              } @else {
+                @for (col of leftCols(); track col.key) {
+                  <div class="td td--skeleton" [style.width.px]="col.width">
+                    <span class="skeleton-bar"></span>
+                  </div>
+                }
+              }
+            </div>
+          </cdk-virtual-scroll-viewport>
+        </div>
+      }
+
+      <div class="pane pane--center">
+        <div class="pane-header pane-header--scroll" #centerHeader>
+          <div class="pane-header__inner" [style.width.px]="centerWidth()">
+            @for (col of centerCols(); track col.key) {
+              <div
+                class="th"
+                [class.th--sorted]="sortDirection(col.key)"
+                [class.th--resizing]="resizingKey() === col.key"
+                [style.width.px]="col.width"
+              >
+                <span class="th__label">{{ col.header }}</span>
+                @if (col.sortable) {
+                  <ng-container
+                    *ngTemplateOutlet="sortBtn; context: { $implicit: col }"
+                  />
+                }
+                @if (col.resizable !== false) {
+                  <button
+                    type="button"
+                    class="col-resizer"
+                    [attr.aria-label]="'Resize ' + col.header"
+                    (pointerdown)="startResize(col.key, $event)"
+                  ></button>
+                }
+              </div>
+            }
+          </div>
+        </div>
+
+        <cdk-virtual-scroll-viewport
+          #centerViewport
+          class="pane-viewport pane-viewport--center"
+          [itemSize]="rowHeight()"
+          [minBufferPx]="rowHeight() * 10"
+          [maxBufferPx]="rowHeight() * 20"
+        >
+          <div
+            class="table-row"
+            *cdkVirtualFor="let row of displayItems(); trackBy: dataSource().trackByIndex"
+            [class.table-row--selected]="row && isSelected(row)"
+            [style.height.px]="rowHeight()"
+            [style.width.px]="centerWidth()"
+            role="row"
+            (click)="row && onRowClick(row, $event)"
+          >
+            @if (row; as item) {
+              @for (col of centerCols(); track col.key) {
+                <div class="td" [style.width.px]="col.width" role="cell">
+                  @if (cellTemplateMap().get(col.key); as tpl) {
+                    <ng-container
+                      *ngTemplateOutlet="tpl; context: { $implicit: item, row: item, column: col }"
+                    />
+                  } @else {
+                    {{ cellText(item, col) }}
+                  }
+                </div>
+              }
+            } @else {
+              @for (col of centerCols(); track col.key) {
+                <div class="td td--skeleton" [style.width.px]="col.width">
+                  <span class="skeleton-bar"></span>
+                </div>
+              }
+            }
+          </div>
+        </cdk-virtual-scroll-viewport>
+      </div>
+
+      @if (rightCols().length) {
+        <div class="pane pane--right" [style.width.px]="rightWidth()">
+          <div class="pane-header">
+            @for (col of rightCols(); track col.key) {
+              <div
+                class="th"
+                [class.th--sorted]="sortDirection(col.key)"
+                [class.th--resizing]="resizingKey() === col.key"
+                [class.th--freeze-edge]="$first"
+                [style.width.px]="col.width"
+              >
+                <span class="th__label">{{ col.header }}</span>
+                <span class="th__pin th__pin--right" title="Frozen right">Pin</span>
+                @if (col.sortable) {
+                  <ng-container
+                    *ngTemplateOutlet="sortBtn; context: { $implicit: col }"
+                  />
+                }
+                @if (col.resizable !== false) {
+                  <button
+                    type="button"
+                    class="col-resizer"
+                    [attr.aria-label]="'Resize ' + col.header"
+                    (pointerdown)="startResize(col.key, $event)"
+                  ></button>
+                }
+              </div>
+            }
+          </div>
+
+          <cdk-virtual-scroll-viewport
+            class="pane-viewport"
+            [itemSize]="rowHeight()"
+            [minBufferPx]="rowHeight() * 10"
+            [maxBufferPx]="rowHeight() * 20"
+          >
+            <div
+              class="table-row"
+              *cdkVirtualFor="let row of displayItems(); trackBy: dataSource().trackByIndex"
+              [class.table-row--selected]="row && isSelected(row)"
+              [style.height.px]="rowHeight()"
+              [style.width.px]="rightWidth()"
+              role="row"
+              (click)="row && onRowClick(row, $event)"
+            >
+              @if (row; as item) {
+                @for (col of rightCols(); track col.key) {
+                  <div
+                    class="td"
+                    [class.td--freeze-edge]="$first"
+                    [class.td--actions]="col.cellClass === 'td--actions'"
+                    [style.width.px]="col.width"
+                    role="cell"
+                  >
+                    @if (cellTemplateMap().get(col.key); as tpl) {
+                      <ng-container
+                        *ngTemplateOutlet="tpl; context: { $implicit: item, row: item, column: col }"
+                      />
+                    } @else {
+                      {{ cellText(item, col) }}
+                    }
+                  </div>
+                }
+              } @else {
+                @for (col of rightCols(); track col.key) {
+                  <div class="td td--skeleton" [style.width.px]="col.width">
+                    <span class="skeleton-bar"></span>
+                  </div>
+                }
+              }
+            </div>
+          </cdk-virtual-scroll-viewport>
+        </div>
+      }
+    </div>
+  </div>
+</div>
+
+<!-- Dedicated sort icons (click target) — ngx-datatable style -->
+<ng-template #sortBtn let-col>
+  <button
+    type="button"
+    class="sort-btn"
+    [class.sort-btn--asc]="sortDirection(col.key) === 'asc'"
+    [class.sort-btn--desc]="sortDirection(col.key) === 'desc'"
+    [attr.aria-label]="'Sort by ' + col.header"
+    [attr.title]="'Sort by ' + col.header"
+    (click)="onSortIconClick(col, $event)"
+  >
+    <svg class="sort-btn__icon" viewBox="0 0 12 16" aria-hidden="true">
+      <path class="sort-btn__up" d="M6 2 L10 7 H2 Z" />
+      <path class="sort-btn__down" d="M6 14 L2 9 H10 Z" />
+    </svg>
+  </button>
+</ng-template>

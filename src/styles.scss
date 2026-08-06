@@ -1,1 +1,38 @@
-/* You can add global styles to this file, and also import other style files */
+:root {
+  --bg: #f3f5f7;
+  --surface: #ffffff;
+  --header-bg: #f7f9fb;
+  --text: #1a2330;
+  --muted: #5c6b7a;
+  --border: #d8e0e8;
+  --row-border: #e8eef3;
+  --row-hover: #f2f6fa;
+  color-scheme: light;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: 'IBM Plex Sans', 'Segoe UI', sans-serif;
+  color: var(--text);
+  background:
+    radial-gradient(1200px 600px at 10% -10%, #dfeaf5 0%, transparent 55%),
+    radial-gradient(900px 500px at 100% 0%, #e8f0e9 0%, transparent 50%),
+    var(--bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+body.gnx-col-resizing {
+  cursor: col-resize !important;
+  user-select: none !important;
+}

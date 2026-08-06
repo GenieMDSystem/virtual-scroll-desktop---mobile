@@ -1,0 +1,113 @@
+:host {
+  display: block;
+  height: 100%;
+  min-height: 0;
+}
+
+.patient-card {
+  box-sizing: border-box;
+  height: 100%;
+  padding: 0.875rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.patient-card__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.patient-card__identity {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.patient-card__name {
+  font-weight: 650;
+  font-size: 1rem;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.patient-card__id {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.patient-card__meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+
+  .label {
+    display: block;
+    color: var(--muted);
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 0.1rem;
+  }
+}
+
+.patient-card__actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0.375rem;
+}
+
+.status {
+  text-transform: capitalize;
+  font-size: 0.6875rem;
+  font-weight: 650;
+  padding: 0.2rem 0.45rem;
+  border-radius: 4px;
+  background: #e8eef5;
+  color: #2a4a6b;
+  flex-shrink: 0;
+
+  &[data-status='approved'] {
+    background: #e3f3e8;
+    color: #1f6b3a;
+  }
+
+  &[data-status='rejected'] {
+    background: #f8e6e6;
+    color: #8a2b2b;
+  }
+}
+
+.btn {
+  appearance: none;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 650;
+  padding: 0.45rem 0.35rem;
+  border-radius: 6px;
+  cursor: pointer;
+
+  &--approve {
+    background: #1f6b3a;
+    border-color: #1f6b3a;
+    color: #fff;
+  }
+
+  &--reject {
+    color: #8a2b2b;
+    border-color: #e2bdbd;
+  }
+}

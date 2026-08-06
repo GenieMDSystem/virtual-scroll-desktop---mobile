@@ -1,12 +1,22 @@
-import { Component, signal } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Component, inject } from '@angular/core';
+import { DecimalPipe } from '@angular/common';
+import { ViewportSwitcherComponent } from './features/viewport/viewport-switcher';
+import { PatientVirtualDataSource } from './demo/patient/patient.data-source';
+import { PaginationStrategy } from './virtual-scroll';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
+  imports: [ViewportSwitcherComponent, DecimalPipe],
   templateUrl: './app.html',
-  styleUrl: './app.scss'
+  styleUrl: './app.scss',
 })
 export class App {
-  protected readonly title = signal('virtual-scroll-demo');
+  readonly title = 'Enterprise CDK Virtual Scroll — Segment 5';
+  readonly dataSource = inject(PatientVirtualDataSource);
+
+  readonly strategies: PaginationStrategy[] = ['infinite', 'offset', 'cursor'];
+
+  setStrategy(strategy: PaginationStrategy): void {
+    this.dataSource.setStrategy(strategy);
+  }
 }

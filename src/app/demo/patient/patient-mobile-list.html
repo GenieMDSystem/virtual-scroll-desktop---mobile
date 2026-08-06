@@ -1,0 +1,35 @@
+<gnx-mobile-virtual-list
+  [dataSource]="dataSource.source"
+  [itemSize]="cardHeight"
+  title="Mobile Card List"
+  ariaLabel="Patient cards"
+>
+  <ng-template gnxVirtualItem let-patient>
+    <article class="patient-card" role="listitem">
+      <div class="patient-card__top">
+        <div class="patient-card__identity">
+          <span class="patient-card__name">{{ patient.patientName }}</span>
+          <span class="patient-card__id">{{ patient.id }}</span>
+        </div>
+        <span class="status" [attr.data-status]="patient.status">{{ patient.status }}</span>
+      </div>
+
+      <div class="patient-card__meta">
+        <div>
+          <span class="label">Created</span>
+          <span>{{ patient.createdDate | date: 'mediumDate' }}</span>
+        </div>
+        <div>
+          <span class="label">K By</span>
+          <span>{{ patient.kByName }}</span>
+        </div>
+      </div>
+
+      <div class="patient-card__actions">
+        <button type="button" class="btn btn--report" (click)="report(patient)">Report</button>
+        <button type="button" class="btn btn--approve" (click)="approve(patient)">Approve</button>
+        <button type="button" class="btn btn--reject" (click)="reject(patient)">Reject</button>
+      </div>
+    </article>
+  </ng-template>
+</gnx-mobile-virtual-list>

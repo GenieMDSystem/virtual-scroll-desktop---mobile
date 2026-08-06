@@ -1,0 +1,42 @@
+<div class="mobile-shell">
+  <header class="mobile-shell__meta">
+    <div>
+      <h2>{{ title() }}</h2>
+      <p>
+        {{ dataSource().totalCount() | number }} total ·
+        loaded {{ dataSource().loadedCount() | number }} ·
+        item {{ itemSize() }}px ·
+        {{ dataSource().strategy }}
+      </p>
+    </div>
+    @if (dataSource().loading()) {
+      <span class="pill">Loading…</span>
+    }
+  </header>
+
+  <cdk-virtual-scroll-viewport
+    class="list-viewport"
+    [itemSize]="itemSize()"
+    [minBufferPx]="itemSize() * 4"
+    [maxBufferPx]="itemSize() * 8"
+    role="list"
+    [attr.aria-label]="ariaLabel()"
+  >
+    <div
+      class="item-slot"
+      *cdkVirtualFor="let row of dataSource().items(); trackBy: dataSource().trackByIndex; let i = index"
+      [style.height.px]="itemSize()"
+    >
+      @if (row; as item) {
+        <ng-container
+          *ngTemplateOutlet="
+            itemDef().templateRef;
+            context: { $implicit: item, item: item, index: i }
+          "
+        />
+      } @else {
+        <div class="item-skeleton" role="listitem"></div>
+      }
+    </div>
+  </cdk-virtual-scroll-viewport>
+</div>

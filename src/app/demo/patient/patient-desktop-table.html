@@ -1,0 +1,76 @@
+<div class="patient-desktop">
+  <div class="toolbar">
+    <label class="toolbar__search">
+      <span>Filter</span>
+      <input
+        type="search"
+        [(ngModel)]="filterText"
+        (keyup.enter)="applyFilter()"
+        placeholder="Name, ID, dept, status…"
+      />
+    </label>
+    <button type="button" class="toolbar__btn" (click)="applyFilter()">Apply</button>
+    <button type="button" class="toolbar__btn toolbar__btn--ghost" (click)="clearFilter()">Clear</button>
+
+    <div class="toolbar__sort-mode" role="group" aria-label="Sorting mode">
+      <span class="toolbar__label">Sorting</span>
+      <button
+        type="button"
+        class="toolbar__btn toolbar__btn--ghost"
+        [class.toolbar__btn--active]="!externalSorting()"
+        (click)="setExternalSorting(false)"
+      >
+        Internal
+      </button>
+      <button
+        type="button"
+        class="toolbar__btn toolbar__btn--ghost"
+        [class.toolbar__btn--active]="externalSorting()"
+        (click)="setExternalSorting(true)"
+      >
+        External
+      </button>
+    </div>
+
+    <span class="toolbar__spacer"></span>
+
+    <span class="toolbar__meta">
+      Selected {{ dataSource.selection.count() | number }}
+      @if (dataSource.source.sort(); as sort) {
+        · external sort {{ sort.key }} {{ sort.direction }}
+      }
+    </span>
+    <button
+      type="button"
+      class="toolbar__btn toolbar__btn--ghost"
+      [disabled]="dataSource.selection.isEmpty()"
+      (click)="clearSelection()"
+    >
+      Clear selection
+    </button>
+  </div>
+
+  <gnx-desktop-virtual-table
+    class="patient-desktop__table"
+    [dataSource]="dataSource.source"
+    [columns]="columns"
+    [selection]="dataSource.selection"
+    [externalSorting]="externalSorting()"
+    (sort)="onExternalSort($event)"
+    title="Desktop Virtual Table"
+    ariaLabel="Patient virtual table"
+  >
+    <ng-template gnxVirtualCell column="createdDate" let-row>
+      {{ row.createdDate | date: 'mediumDate' }}
+    </ng-template>
+
+    <ng-template gnxVirtualCell column="status" let-row>
+      <span class="status" [attr.data-status]="row.status">{{ row.status }}</span>
+    </ng-template>
+
+    <ng-template gnxVirtualCell column="actions" let-row>
+      <button type="button" class="btn btn--ghost" (click)="approve(row, $event)">Approve</button>
+      <button type="button" class="btn btn--danger" (click)="reject(row, $event)">Reject</button>
+    </ng-template>
+  </gnx-desktop-virtual-table>
+</div>

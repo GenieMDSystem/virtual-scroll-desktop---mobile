@@ -1,0 +1,86 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 100dvh;
+  padding: 1rem 1.25rem 1.25rem;
+  box-sizing: border-box;
+  gap: 1rem;
+}
+
+.app__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+
+  h1 {
+    margin: 0.15rem 0 0;
+    font-size: clamp(1.25rem, 2.2vw, 1.6rem);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1.2;
+  }
+}
+
+.app__strategies {
+  display: flex;
+  gap: 0.375rem;
+  flex-wrap: wrap;
+}
+
+.strategy-btn {
+  appearance: none;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 650;
+  text-transform: capitalize;
+  padding: 0.4rem 0.7rem;
+  border-radius: 6px;
+  cursor: pointer;
+
+  &--active {
+    color: #1f4d7a;
+    background: #e8f0f8;
+    border-color: #c5d8eb;
+  }
+}
+
+.app__eyebrow {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.app__sub {
+  margin: 0.4rem 0 0;
+  color: var(--muted);
+  font-size: 0.875rem;
+  max-width: 52rem;
+  line-height: 1.45;
+
+  code {
+    font-size: 0.8125rem;
+    background: var(--header-bg);
+    padding: 0.1rem 0.35rem;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+  }
+}
+
+.app__main {
+  flex: 1;
+  min-height: 0;
+}
