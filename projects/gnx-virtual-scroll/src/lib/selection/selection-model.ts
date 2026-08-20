@@ -122,6 +122,37 @@ export class SelectionModel<T> {
   }
 
   /**
+   * Header checkbox state against the current list:
+   * - none — nothing selected
+   * - some — partial (indeterminate)
+   * - all — every non-null row selected
+   */
+  getSelectAllState(items: Array<T | null>): 'none' | 'some' | 'all' {
+    const selected = this._ids();
+    let total = 0;
+    let hit = 0;
+    for (const item of items) {
+      if (!item) continue;
+      total++;
+      if (selected.has(this.trackBy(item))) {
+        hit++;
+      }
+    }
+    if (total === 0 || hit === 0) return 'none';
+    if (hit === total) return 'all';
+    return 'some';
+  }
+
+  /** Header checkbox: if all selected → clear; otherwise select all. */
+  toggleSelectAll(items: Array<T | null>): void {
+    if (this.getSelectAllState(items) === 'all') {
+      this.clear();
+    } else {
+      this.selectAll(items);
+    }
+  }
+
+  /**
    * Shift-click: select contiguous range from anchor → target.
    * If no anchor yet, behaves like selectOnly.
    * Anchor is not moved (same as Explorer / Finder).

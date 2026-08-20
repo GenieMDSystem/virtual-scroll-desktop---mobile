@@ -65,6 +65,12 @@ export class DesktopVirtualTableComponent<T> implements AfterViewInit {
   readonly title = input('Desktop Virtual Table');
   readonly fitToContainer = input(true);
   readonly selection = input<SelectionModel<T> | null>(null);
+  /**
+   * Show a frozen checkbox column + header select-all (indeterminate when partial).
+   * Requires {@link selection}. Default true when selection is provided.
+   */
+  readonly checkboxSelection = input(true);
+  readonly checkboxColumnWidth = input(44);
 
   /**
    * ngx-datatable-compatible flag.
@@ -158,11 +164,36 @@ export class DesktopVirtualTableComponent<T> implements AfterViewInit {
     this.columnViews().filter((c) => c.frozen === 'right'),
   );
 
-  readonly leftWidth = computed(() => totalColumnsWidth(this.leftCols()));
+  readonly showCheckboxColumn = computed(
+    () => this.checkboxSelection() && this.selection() != null,
+  );
+
+  readonly leftWidth = computed(
+    () =>
+      totalColumnsWidth(this.leftCols()) +
+      (this.showCheckboxColumn() ? this.checkboxColumnWidth() : 0),
+  );
   readonly centerWidth = computed(() => totalColumnsWidth(this.centerCols()));
   readonly rightWidth = computed(() => totalColumnsWidth(this.rightCols()));
   readonly tableWidth = computed(
     () => this.leftWidth() + this.centerWidth() + this.rightWidth(),
+  );
+
+  /** none | some (indeterminate) | all — for header checkbox */
+  readonly headerSelectState = computed(() => {
+    const sel = this.selection();
+    if (!sel || !this.showCheckboxColumn()) {
+      return 'none' as const;
+    }
+    // Depend on selection signals for OnPush updates
+    sel.ids();
+    sel.count();
+    return sel.getSelectAllState(this.displayItems());
+  });
+
+  readonly headerChecked = computed(() => this.headerSelectState() === 'all');
+  readonly headerIndeterminate = computed(
+    () => this.headerSelectState() === 'some',
   );
 
   readonly cellTemplateMap = computed(() => {
@@ -342,16 +373,43 @@ export class DesktopVirtualTableComponent<T> implements AfterViewInit {
     return this.selection()?.isSelected(row) ?? false;
   }
 
+  onHeaderCheckboxClick(event: Event): void {
+    event.stopPropagation();
+    const sel = this.selection();
+    if (!sel) {
+      return;
+    }
+    sel.toggleSelectAll(this.displayItems());
+  }
+
+  onRowCheckboxClick(row: T, index: number, event: MouseEvent): void {
+    event.stopPropagation();
+    const sel = this.selection();
+    if (!sel) {
+      return;
+    }
+    if (event.shiftKey) {
+      event.preventDefault();
+      sel.selectRangeTo(row, this.displayItems(), index);
+      return;
+    }
+    // Checkbox always toggles (multi-select), unlike plain row click
+    sel.toggle(row);
+  }
+
   onRowClick(row: T, index: number, event: MouseEvent): void {
     const sel = this.selection();
     if (!sel) {
       return;
     }
-    if ((event.target as HTMLElement).closest('button, a, input, .sort-btn, .col-resizer')) {
+    if (
+      (event.target as HTMLElement).closest(
+        'button, a, input, .sort-btn, .col-resizer, .row-check',
+      )
+    ) {
       return;
     }
 
-    // Avoid native text selection while shift-dragging a range
     if (event.shiftKey) {
       event.preventDefault();
     }

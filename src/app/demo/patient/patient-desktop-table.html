@@ -36,7 +36,7 @@
 
     <span class="toolbar__meta">
       Selected {{ dataSource.selection.count() | number }}
-      · click · ⌘/Ctrl+click · ⇧ click · ⌘/Ctrl+A · Esc
+      · ☐ column · header select-all · ⌘/Ctrl · ⇧ · Esc
       @if (dataSource.source.sort(); as sort) {
         · external sort {{ sort.key }} {{ sort.direction }}
       }
@@ -56,6 +56,7 @@
     [dataSource]="dataSource.source"
     [columns]="columns"
     [selection]="dataSource.selection"
+    [checkboxSelection]="true"
     [externalSorting]="externalSorting()"
     (sort)="onExternalSort($event)"
     title="Desktop Virtual Table"

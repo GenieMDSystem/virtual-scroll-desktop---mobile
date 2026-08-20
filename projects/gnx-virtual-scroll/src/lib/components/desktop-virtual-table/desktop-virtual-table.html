@@ -30,9 +30,32 @@
     (keydown)="onTableKeydown($event)"
   >
     <div class="panes">
-      @if (leftCols().length) {
+      @if (leftCols().length || showCheckboxColumn()) {
         <div class="pane pane--left" [style.width.px]="leftWidth()">
           <div class="pane-header">
+            @if (showCheckboxColumn()) {
+              <div
+                class="th th--check"
+                [style.width.px]="checkboxColumnWidth()"
+                [style.flex-basis.px]="checkboxColumnWidth()"
+              >
+                <input
+                  type="checkbox"
+                  class="row-check"
+                  [checked]="headerChecked()"
+                  [indeterminate]="headerIndeterminate()"
+                  [attr.aria-label]="'Select all rows'"
+                  [attr.title]="
+                    headerIndeterminate()
+                      ? 'Some rows selected'
+                      : headerChecked()
+                        ? 'Deselect all'
+                        : 'Select all'
+                  "
+                  (click)="onHeaderCheckboxClick($event)"
+                />
+              </div>
+            }
             @for (col of leftCols(); track col.key) {
               <div
                 class="th"
@@ -76,6 +99,23 @@
               (click)="row && onRowClick(row, i, $event)"
               (mousedown)="$event.shiftKey && $event.preventDefault()"
             >
+              @if (showCheckboxColumn()) {
+                <div
+                  class="td td--check"
+                  [style.width.px]="checkboxColumnWidth()"
+                  [style.flex-basis.px]="checkboxColumnWidth()"
+                >
+                  @if (row; as item) {
+                    <input
+                      type="checkbox"
+                      class="row-check"
+                      [checked]="isSelected(item)"
+                      [attr.aria-label]="'Select row'"
+                      (click)="onRowCheckboxClick(item, i, $event)"
+                    />
+                  }
+                </div>
+              }
               @if (row; as item) {
                 @for (col of leftCols(); track col.key) {
                   <div
