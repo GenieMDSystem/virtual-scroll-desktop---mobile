@@ -1,5 +1,5 @@
 import { Observable, delay, of } from 'rxjs';
-import { PageRequest, PageResult, SortState } from '@gnx/virtual-scroll';
+import { PageRequest, PageResult, SortState } from 'gnx-virtual-scroll';
 import { Patient, PatientStatus } from './patient.model';
 
 const STATUSES: PatientStatus[] = ['pending', 'approved', 'rejected'];

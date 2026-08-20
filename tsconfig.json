@@ -5,7 +5,6 @@
   "compilerOptions": {
     "strict": true,
     "paths": {
-      "@gnx/virtual-scroll": ["./projects/gnx-virtual-scroll/src/public-api.ts"],
       "gnx-virtual-scroll": ["./projects/gnx-virtual-scroll/src/public-api.ts"]
     },
     "noImplicitOverride": true,

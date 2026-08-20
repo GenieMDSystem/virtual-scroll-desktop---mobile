@@ -1,4 +1,4 @@
-# @gnx/virtual-scroll
+# gnx-virtual-scroll
 
 Enterprise Angular CDK virtual scroll library — desktop virtualized table, mobile card list, shared data source, cache, frozen columns, resize, and internal/external sorting.
 
@@ -17,7 +17,7 @@ APIs used (signals, `input()` / `output()`, signal queries, `@if` / `@for`) all 
 ## Install
 
 ```bash
-npm install @gnx/virtual-scroll @angular/cdk
+npm install gnx-virtual-scroll @angular/cdk
 ```
 
 Peer dependencies: `@angular/core`, `@angular/common`, `@angular/cdk` **>=19 <22**, `rxjs` ^7.8.
@@ -25,7 +25,7 @@ Peer dependencies: `@angular/core`, `@angular/common`, `@angular/cdk` **>=19 <22
 ### Angular 19 apps
 
 ```bash
-npm install @gnx/virtual-scroll @angular/cdk@^19
+npm install gnx-virtual-scroll @angular/cdk@^19
 ```
 
 If you hit Ivy compilation mismatches with a prebuilt `dist` from a newer Angular CLI, build the library in an Angular 19 workspace (or consume the `projects/gnx-virtual-scroll` sources via path mapping).
@@ -40,7 +40,7 @@ import {
   VirtualCellDef,
   VirtualItemDef,
   ColumnDef,
-} from '@gnx/virtual-scroll';
+} from 'gnx-virtual-scroll';
 ```
 
 ```html
@@ -69,5 +69,5 @@ Output: `dist/gnx-virtual-scroll`
 ```bash
 npm run build:lib
 cd dist/gnx-virtual-scroll
-npm publish --access public
+npm publish
 ```

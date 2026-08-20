@@ -5,7 +5,7 @@ import {
   DesktopVirtualTableComponent,
   SortState,
   VirtualCellDef,
-} from '@gnx/virtual-scroll';
+} from 'gnx-virtual-scroll';
 import { PATIENT_COLUMNS } from './patient.columns';
 import { PatientVirtualDataSource } from './patient.data-source';
 import { Patient } from './patient.model';

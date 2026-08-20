@@ -4,7 +4,7 @@ Monorepo with:
 
 | Path | Role |
 |---|---|
-| `projects/gnx-virtual-scroll` | Publishable Angular library `@gnx/virtual-scroll` |
+| `projects/gnx-virtual-scroll` | Publishable Angular library `gnx-virtual-scroll` |
 | `src/` | Demo harness (patient desktop/mobile) |
 
 ## Develop
@@ -21,7 +21,7 @@ Requires **Angular 19, 20, or 21** + matching `@angular/cdk`.
 
 ### From this repo (path alias)
 
-Demo already imports `@gnx/virtual-scroll` via `tsconfig.json` paths.
+Demo already imports `gnx-virtual-scroll` via `tsconfig.json` paths.
 
 ### From npm / local tarball
 
@@ -37,7 +37,7 @@ import {
   DesktopVirtualTableComponent,
   VirtualDataSource,
   ColumnDef,
-} from '@gnx/virtual-scroll';
+} from 'gnx-virtual-scroll';
 ```
 
 ## Publish
@@ -45,5 +45,5 @@ import {
 ```bash
 npm run build:lib
 cd dist/gnx-virtual-scroll
-npm publish --access public
+npm publish
 ```

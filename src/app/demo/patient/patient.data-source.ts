@@ -4,7 +4,7 @@ import {
   SelectionModel,
   SortState,
   VirtualDataSource,
-} from '@gnx/virtual-scroll';
+} from 'gnx-virtual-scroll';
 import {
   PATIENT_TOTAL_COUNT,
   fetchPatientsPage,
