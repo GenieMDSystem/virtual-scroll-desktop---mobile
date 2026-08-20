@@ -1,0 +1,26 @@
+<div class="shell">
+  <aside class="shell__sidebar">
+    <div class="shell__brand">
+      <p class="shell__eyebrow">GNX</p>
+      <h1>Virtual Scroll</h1>
+      <p class="shell__tagline">Feature demos</p>
+    </div>
+
+    <nav class="shell__nav" aria-label="Feature demos">
+      @for (item of nav; track item.path) {
+        <a
+          class="shell__link"
+          [routerLink]="['/', item.path]"
+          routerLinkActive="shell__link--active"
+        >
+          <span class="shell__link-label">{{ item.label }}</span>
+          <span class="shell__link-blurb">{{ item.blurb }}</span>
+        </a>
+      }
+    </nav>
+  </aside>
+
+  <div class="shell__content">
+    <router-outlet />
+  </div>
+</div>

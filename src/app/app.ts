@@ -1,41 +1,15 @@
-import { Component, inject } from '@angular/core';
-import { DecimalPipe } from '@angular/common';
-import { ViewportSwitcherComponent } from './features/viewport/viewport-switcher';
-import { PatientVirtualDataSource } from './demo/patient/patient.data-source';
-import { PaginationStrategy } from 'gnx-virtual-scroll';
+import { Component } from '@angular/core';
+import { RouterOutlet } from '@angular/router';
 
 @Component({
   selector: 'app-root',
-  imports: [ViewportSwitcherComponent, DecimalPipe],
-  templateUrl: './app.html',
-  styleUrl: './app.scss',
+  imports: [RouterOutlet],
+  template: `<router-outlet />`,
+  styles: `
+    :host {
+      display: block;
+      height: 100%;
+    }
+  `,
 })
-export class App {
-  readonly title = 'Enterprise CDK Virtual Scroll — Segment 5';
-  readonly dataSource = inject(PatientVirtualDataSource);
-
-  readonly strategies: PaginationStrategy[] = [
-    'infinite',
-    'offset',
-    'cursor',
-    'static',
-  ];
-
-  /** Items loaded per remote page (default 25) */
-  readonly pageSizeOptions = [10, 25, 50, 100];
-
-  /** Total in-memory rows for static mode (default 5,000) */
-  readonly staticCountOptions = [100, 500, 1_000, 5_000, 10_000, 25_000];
-
-  setStrategy(strategy: PaginationStrategy): void {
-    this.dataSource.setStrategy(strategy);
-  }
-
-  setPageSize(size: number): void {
-    this.dataSource.setPageSize(size);
-  }
-
-  setStaticCount(count: number): void {
-    this.dataSource.setStaticCount(count);
-  }
-}
+export class App {}

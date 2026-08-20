@@ -1,4 +1,9 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  input,
+} from '@angular/core';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -12,6 +17,10 @@ import { PATIENT_COLUMNS } from './patient.columns';
 import { PatientVirtualDataSource } from './patient.data-source';
 import { Patient } from './patient.model';
 
+/**
+ * Shared desktop table host used by feature demo pages.
+ * Feature-specific toolbars live on each page — not here.
+ */
 @Component({
   selector: 'app-patient-desktop-table',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -28,39 +37,24 @@ import { Patient } from './patient.model';
 export class PatientDesktopTableComponent {
   readonly dataSource = inject(PatientVirtualDataSource);
   readonly columns = PATIENT_COLUMNS;
-  readonly ColumnMode = ColumnMode;
-  readonly SortType = SortType;
+
+  readonly title = input('Desktop Virtual Table');
+  readonly columnMode = input<ColumnMode | `${ColumnMode}`>(ColumnMode.force);
+  readonly externalSorting = input(true);
+  readonly sortType = input<SortType | `${SortType}`>(SortType.single);
+  readonly checkboxSelection = input(true);
+  /** Show a compact filter row above the table */
+  readonly showFilter = input(false);
+  /** Show selection count + clear */
+  readonly showSelectionMeta = input(false);
+
   filterText = '';
 
-  /**
-   * ngx-datatable-style toggle:
-   * - external=true → API/dataSource sorts (server-side)
-   * - external=false → table sorts loaded rows client-side
-   */
-  readonly externalSorting = signal(true);
-  readonly sortType = signal<SortType>(SortType.single);
-  readonly columnMode = signal<ColumnMode>(ColumnMode.force);
-
   readonly onSort = (event: SortEvent<Patient>): void => {
-    // External hosts apply the emitted sorts list
     if (this.externalSorting()) {
       this.dataSource.source.applySorts(event.sorts);
     }
   };
-
-  setExternalSorting(external: boolean): void {
-    this.externalSorting.set(external);
-    this.dataSource.source.clearSort();
-  }
-
-  setSortType(type: SortType): void {
-    this.sortType.set(type);
-    this.dataSource.source.clearSort();
-  }
-
-  setColumnMode(mode: ColumnMode): void {
-    this.columnMode.set(mode);
-  }
 
   applyFilter(): void {
     this.dataSource.setFilter(this.filterText);

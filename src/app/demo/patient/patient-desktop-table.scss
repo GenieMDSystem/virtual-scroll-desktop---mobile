@@ -67,23 +67,8 @@
   }
 }
 
-.toolbar__sort-mode {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  margin-left: 0.25rem;
-}
-
-.toolbar__label {
-  font-size: 0.75rem;
-  font-weight: 650;
-  color: var(--muted);
-}
-
-.toolbar__btn--active {
-  color: #1f4d7a !important;
-  background: #e8f0f8 !important;
-  border-color: #c5d8eb !important;
+.toolbar__spacer {
+  flex: 1;
 }
 
 .toolbar__meta {
