@@ -9,21 +9,38 @@
         strategy <strong>{{ dataSource.strategy() }}</strong>
         @if (dataSource.source.isStatic) {
           · in-memory
+        } @else {
+          · page size <strong>{{ dataSource.pageSize() }}</strong>
         }
       </p>
     </div>
 
-    <div class="app__strategies" role="group" aria-label="Pagination strategy">
-      @for (s of strategies; track s) {
-        <button
-          type="button"
-          class="strategy-btn"
-          [class.strategy-btn--active]="dataSource.strategy() === s"
-          (click)="setStrategy(s)"
+    <div class="app__controls">
+      <div class="app__strategies" role="group" aria-label="Pagination strategy">
+        @for (s of strategies; track s) {
+          <button
+            type="button"
+            class="strategy-btn"
+            [class.strategy-btn--active]="dataSource.strategy() === s"
+            (click)="setStrategy(s)"
+          >
+            {{ s }}
+          </button>
+        }
+      </div>
+
+      <label class="page-size" [class.page-size--disabled]="dataSource.source.isStatic">
+        <span>Items / page</span>
+        <select
+          [disabled]="dataSource.source.isStatic"
+          [value]="dataSource.pageSize()"
+          (change)="setPageSize(+$any($event.target).value)"
         >
-          {{ s }}
-        </button>
-      }
+          @for (n of pageSizeOptions; track n) {
+            <option [value]="n" [selected]="dataSource.pageSize() === n">{{ n }}</option>
+          }
+        </select>
+      </label>
     </div>
   </header>
 

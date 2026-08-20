@@ -29,10 +29,48 @@
   }
 }
 
+.app__controls {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
 .app__strategies {
   display: flex;
   gap: 0.375rem;
   flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.page-size {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  font-weight: 650;
+  color: var(--muted);
+
+  select {
+    appearance: none;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    font: inherit;
+    font-size: 0.75rem;
+    font-weight: 650;
+    padding: 0.35rem 0.55rem;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+
+  &--disabled {
+    opacity: 0.45;
+
+    select {
+      cursor: default;
+    }
+  }
 }
 
 .strategy-btn {

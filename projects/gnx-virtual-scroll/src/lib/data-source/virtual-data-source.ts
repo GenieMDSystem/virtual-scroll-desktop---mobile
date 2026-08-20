@@ -27,7 +27,7 @@ async function resolvePage<T>(
  */
 export class VirtualDataSource<T> {
   private _strategy: PaginationStrategy;
-  readonly pageSize: number;
+  private _pageSize: number;
 
   private readonly trackBy: (item: T) => RowId;
   private fetchPage: VirtualFetchFn<T> | undefined;
@@ -72,6 +72,11 @@ export class VirtualDataSource<T> {
     return this._strategy;
   }
 
+  /** Items fetched per remote request (infinite / offset / cursor). Default 25. */
+  get pageSize(): number {
+    return this._pageSize;
+  }
+
   /** True when using in-memory `data` (no fetchPage lazy loading). */
   get isStatic(): boolean {
     return this._strategy === 'static' || this.rawData != null;
@@ -86,7 +91,7 @@ export class VirtualDataSource<T> {
 
     this.fetchPage = config.fetchPage;
     this.trackBy = config.trackBy;
-    this.pageSize = config.pageSize ?? 50;
+    this._pageSize = Math.max(1, config.pageSize ?? 25);
     this.prefetchPages = config.prefetchPages ?? 1;
     this.loadMoreThreshold = config.loadMoreThreshold ?? 15;
     this.estimatedTotal = config.estimatedTotal;
@@ -153,6 +158,21 @@ export class VirtualDataSource<T> {
     this._error.set(null);
     this.initialized = true;
     this.applyStaticView();
+  }
+
+  /**
+   * Change how many items each remote page loads (infinite / offset / cursor).
+   * Reloads the current remote query. No-op effect on static mode until you switch back.
+   */
+  setPageSize(size: number): void {
+    const next = Math.max(1, Math.floor(size));
+    if (next === this._pageSize) {
+      return;
+    }
+    this._pageSize = next;
+    if (!this.isStatic) {
+      this.reloadQuery();
+    }
   }
 
   /**

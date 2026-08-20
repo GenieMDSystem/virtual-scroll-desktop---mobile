@@ -50,6 +50,7 @@ export interface VirtualDataSourceConfig<T> {
   data?: T[];
   trackBy: (item: T) => RowId;
   strategy?: PaginationStrategy;
+  /** Items per remote page (infinite / offset / cursor). Default: 25 */
   pageSize?: number;
   /** Pages ahead/behind to prefetch (offset) */
   prefetchPages?: number;

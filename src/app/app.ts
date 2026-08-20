@@ -21,7 +21,14 @@ export class App {
     'static',
   ];
 
+  /** Items loaded per remote page (default 25) */
+  readonly pageSizeOptions = [10, 25, 50, 100];
+
   setStrategy(strategy: PaginationStrategy): void {
     this.dataSource.setStrategy(strategy);
+  }
+
+  setPageSize(size: number): void {
+    this.dataSource.setPageSize(size);
   }
 }

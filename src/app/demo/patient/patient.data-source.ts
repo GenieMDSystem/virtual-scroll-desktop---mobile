@@ -20,17 +20,19 @@ import { Patient, PatientStatus } from './patient.model';
 @Injectable({ providedIn: 'root' })
 export class PatientVirtualDataSource {
   private readonly _strategy = signal<PaginationStrategy>('infinite');
+  private readonly _pageSize = signal(25);
 
   readonly strategy = this._strategy.asReadonly();
+  readonly pageSize = this._pageSize.asReadonly();
 
   readonly source = new VirtualDataSource<Patient>({
     fetchPage: (req) => fetchPatientsPage(req),
     trackBy: (p) => p.id,
     strategy: 'infinite',
-    pageSize: 50,
+    pageSize: 25,
     prefetchPages: 1,
     maxCachedPages: 24,
-    loadMoreThreshold: 20,
+    loadMoreThreshold: 15,
     estimatedTotal: PATIENT_TOTAL_COUNT,
     filterFn: (p, q) =>
       `${p.id} ${p.patientName} ${p.kByName} ${p.department} ${p.status}`
@@ -44,12 +46,16 @@ export class PatientVirtualDataSource {
     this._strategy.set(strategy);
 
     if (strategy === 'static') {
-      // All rows in memory — no fetchPage / lazy loading
       this.source.setData(buildPatientsArray());
       return;
     }
 
     this.source.reset(strategy);
+  }
+
+  setPageSize(size: number): void {
+    this._pageSize.set(size);
+    this.source.setPageSize(size);
   }
 
   setFilter(query: string): void {
