@@ -31,7 +31,7 @@
     tabindex="0"
     (keydown)="onTableKeydown($event)"
   >
-    <div class="panes">
+    <div class="panes" (pointerleave)="onPanesPointerLeave()">
       @if (leftCols().length || showCheckboxColumn()) {
         <div class="pane pane--left" [style.width.px]="leftWidth()">
           <div class="pane-header">
@@ -93,9 +93,11 @@
               class="table-row"
               *cdkVirtualFor="let row of displayItems(); trackBy: dataSource().trackByIndex; let i = index"
               [class.table-row--selected]="row && isSelected(row)"
+              [class.table-row--hover]="isRowHovered(i)"
               [style.height.px]="rowHeight()"
               [style.width.px]="leftWidth()"
               role="row"
+              (pointerenter)="onRowPointerEnter(i)"
               (click)="row && onRowClick(row, i, $event)"
               (mousedown)="$event.shiftKey && $event.preventDefault()"
             >
@@ -185,9 +187,11 @@
             class="table-row"
             *cdkVirtualFor="let row of displayItems(); trackBy: dataSource().trackByIndex; let i = index"
             [class.table-row--selected]="row && isSelected(row)"
+            [class.table-row--hover]="isRowHovered(i)"
             [style.height.px]="rowHeight()"
             [style.width.px]="centerWidth()"
             role="row"
+            (pointerenter)="onRowPointerEnter(i)"
             (click)="row && onRowClick(row, i, $event)"
             (mousedown)="$event.shiftKey && $event.preventDefault()"
           >
@@ -254,9 +258,11 @@
               class="table-row"
               *cdkVirtualFor="let row of displayItems(); trackBy: dataSource().trackByIndex; let i = index"
               [class.table-row--selected]="row && isSelected(row)"
+              [class.table-row--hover]="isRowHovered(i)"
               [style.height.px]="rowHeight()"
               [style.width.px]="rightWidth()"
               role="row"
+              (pointerenter)="onRowPointerEnter(i)"
               (click)="row && onRowClick(row, i, $event)"
               (mousedown)="$event.shiftKey && $event.preventDefault()"
             >

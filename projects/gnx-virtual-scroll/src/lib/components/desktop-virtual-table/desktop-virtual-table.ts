@@ -135,6 +135,8 @@ export class DesktopVirtualTableComponent<T> implements AfterViewInit {
   private readonly baseWidths = signal<Record<string, number>>({});
   readonly containerWidth = signal(0);
   readonly resizingKey = signal<string | null>(null);
+  /** Shared hover index so frozen + center panes highlight together */
+  readonly hoveredRowIndex = signal<number | null>(null);
   /** Client-side sorts when externalSorting=false */
   private readonly internalSorts = signal<SortPropDir[]>([]);
 
@@ -492,6 +494,18 @@ export class DesktopVirtualTableComponent<T> implements AfterViewInit {
 
   isSelected(row: T): boolean {
     return this.selection()?.isSelected(row) ?? false;
+  }
+
+  isRowHovered(index: number): boolean {
+    return this.hoveredRowIndex() === index;
+  }
+
+  onRowPointerEnter(index: number): void {
+    this.hoveredRowIndex.set(index);
+  }
+
+  onPanesPointerLeave(): void {
+    this.hoveredRowIndex.set(null);
   }
 
   onHeaderCheckboxClick(event: Event): void {

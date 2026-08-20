@@ -160,14 +160,17 @@
   cursor: default;
   user-select: none;
 
-  &:hover {
+  /* --hover syncs frozen + center panes (separate viewports) */
+  &:hover,
+  &--hover {
     background: var(--row-hover);
   }
 
   &--selected {
     background: #e8f1fa;
 
-    &:hover {
+    &:hover,
+    &.table-row--hover {
       background: #dceaf6;
     }
   }
