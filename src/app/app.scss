@@ -43,6 +43,13 @@
   justify-content: flex-end;
 }
 
+.app__size-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
 .page-size {
   display: inline-flex;
   align-items: center;

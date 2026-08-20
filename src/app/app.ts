@@ -24,11 +24,18 @@ export class App {
   /** Items loaded per remote page (default 25) */
   readonly pageSizeOptions = [10, 25, 50, 100];
 
+  /** Total in-memory rows for static mode (default 5,000) */
+  readonly staticCountOptions = [100, 500, 1_000, 5_000, 10_000, 25_000];
+
   setStrategy(strategy: PaginationStrategy): void {
     this.dataSource.setStrategy(strategy);
   }
 
   setPageSize(size: number): void {
     this.dataSource.setPageSize(size);
+  }
+
+  setStaticCount(count: number): void {
+    this.dataSource.setStaticCount(count);
   }
 }

@@ -9,6 +9,7 @@
         strategy <strong>{{ dataSource.strategy() }}</strong>
         @if (dataSource.source.isStatic) {
           · in-memory
+          <strong>{{ dataSource.staticCount() | number }}</strong>
         } @else {
           · page size <strong>{{ dataSource.pageSize() }}</strong>
         }
@@ -29,18 +30,35 @@
         }
       </div>
 
-      <label class="page-size" [class.page-size--disabled]="dataSource.source.isStatic">
-        <span>Items / page</span>
-        <select
-          [disabled]="dataSource.source.isStatic"
-          [value]="dataSource.pageSize()"
-          (change)="setPageSize(+$any($event.target).value)"
-        >
-          @for (n of pageSizeOptions; track n) {
-            <option [value]="n" [selected]="dataSource.pageSize() === n">{{ n }}</option>
-          }
-        </select>
-      </label>
+      <div class="app__size-row">
+        <label class="page-size" [class.page-size--disabled]="dataSource.source.isStatic">
+          <span>Items / page</span>
+          <select
+            [disabled]="dataSource.source.isStatic"
+            [value]="dataSource.pageSize()"
+            (change)="setPageSize(+$any($event.target).value)"
+          >
+            @for (n of pageSizeOptions; track n) {
+              <option [value]="n" [selected]="dataSource.pageSize() === n">{{ n }}</option>
+            }
+          </select>
+        </label>
+
+        <label class="page-size" [class.page-size--disabled]="!dataSource.source.isStatic">
+          <span>Static rows</span>
+          <select
+            [disabled]="!dataSource.source.isStatic"
+            [value]="dataSource.staticCount()"
+            (change)="setStaticCount(+$any($event.target).value)"
+          >
+            @for (n of staticCountOptions; track n) {
+              <option [value]="n" [selected]="dataSource.staticCount() === n">
+                {{ n | number }}
+              </option>
+            }
+          </select>
+        </label>
+      </div>
     </div>
   </header>
 
