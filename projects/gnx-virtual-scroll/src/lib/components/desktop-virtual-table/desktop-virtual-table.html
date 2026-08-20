@@ -37,21 +37,23 @@
           <div class="pane-header">
             @if (showCheckboxColumn()) {
               <div class="th th--check" [style]="sizeStyle(checkboxColumnWidth())">
-                <input
-                  type="checkbox"
-                  class="row-check"
-                  [checked]="headerChecked()"
-                  [indeterminate]="headerIndeterminate()"
-                  [attr.aria-label]="'Select all rows'"
-                  [attr.title]="
-                    headerIndeterminate()
-                      ? 'Some rows selected'
-                      : headerChecked()
-                        ? 'Deselect all'
-                        : 'Select all'
-                  "
-                  (click)="onHeaderCheckboxClick($event)"
-                />
+                @if (showHeaderSelectAll()) {
+                  <input
+                    type="checkbox"
+                    class="row-check"
+                    [checked]="headerChecked()"
+                    [indeterminate]="headerIndeterminate()"
+                    [attr.aria-label]="'Select all rows'"
+                    [attr.title]="
+                      headerIndeterminate()
+                        ? 'Some rows selected'
+                        : headerChecked()
+                          ? 'Deselect all'
+                          : 'Select all'
+                    "
+                    (click)="onHeaderCheckboxClick($event)"
+                  />
+                }
               </div>
             }
             @for (col of leftCols(); track col.key) {

@@ -26,6 +26,12 @@ export enum SortType {
   multi = 'multi',
 }
 
+/** ngx-datatable-style row selection mode */
+export enum SelectionType {
+  single = 'single',
+  multi = 'multi',
+}
+
 /** ngx-datatable-compatible sort entry */
 export interface SortPropDir {
   prop: string;

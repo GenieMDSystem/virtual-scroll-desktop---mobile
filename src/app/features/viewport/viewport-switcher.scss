@@ -14,29 +14,29 @@
 
 .viewport__badge {
   align-self: flex-start;
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   font-weight: 650;
-  letter-spacing: 0.02em;
-  padding: 0.35rem 0.65rem;
+  letter-spacing: 0.01em;
+  padding: 0.4rem 0.75rem;
   border-radius: 6px;
   border: 1px solid var(--border);
   background: var(--header-bg);
-  color: var(--muted);
+  color: #2a3a4a;
 
   &[data-mode='desktop'] {
-    color: #1f4d7a;
+    color: #163a5c;
     background: #e8f0f8;
-    border-color: #c5d8eb;
+    border-color: #b7cce0;
   }
 
   &[data-mode='tablet'] {
-    color: #6b4f1f;
+    color: #5a4014;
     background: #f8f1e3;
     border-color: #e5d6b4;
   }
 
   &[data-mode='mobile'] {
-    color: #1f6b3a;
+    color: #15532c;
     background: #e3f3e8;
     border-color: #b7dcc4;
   }

@@ -41,7 +41,7 @@
 }
 
 .patient-card__id {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   color: var(--muted);
 }
 
@@ -49,12 +49,13 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0.5rem;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
 
   .label {
     display: block;
-    color: var(--muted);
-    font-size: 0.6875rem;
+    color: #2a3a4a;
+    font-size: 0.75rem;
+    font-weight: 650;
     text-transform: uppercase;
     letter-spacing: 0.04em;
     margin-bottom: 0.1rem;
@@ -69,22 +70,22 @@
 
 .status {
   text-transform: capitalize;
-  font-size: 0.6875rem;
+  font-size: 0.8125rem;
   font-weight: 650;
-  padding: 0.2rem 0.45rem;
+  padding: 0.25rem 0.5rem;
   border-radius: 4px;
-  background: #e8eef5;
-  color: #2a4a6b;
+  background: #dce6f0;
+  color: #1a334d;
   flex-shrink: 0;
 
   &[data-status='approved'] {
-    background: #e3f3e8;
-    color: #1f6b3a;
+    background: #d5ecd9;
+    color: #15532c;
   }
 
   &[data-status='rejected'] {
-    background: #f8e6e6;
-    color: #8a2b2b;
+    background: #f3d6d6;
+    color: #7a2222;
   }
 }
 
@@ -94,9 +95,9 @@
   background: var(--surface);
   color: var(--text);
   font: inherit;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 650;
-  padding: 0.45rem 0.35rem;
+  padding: 0.5rem 0.4rem;
   border-radius: 6px;
   cursor: pointer;
 

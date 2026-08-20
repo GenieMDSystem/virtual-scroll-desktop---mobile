@@ -1,5 +1,5 @@
 import { computed, signal } from '@angular/core';
-import { RowId } from '../models/virtual-scroll.models';
+import { RowId, SelectionType } from '../models/virtual-scroll.models';
 
 export interface SelectionClickModifiers {
   shiftKey: boolean;
@@ -8,14 +8,17 @@ export interface SelectionClickModifiers {
 }
 
 /**
- * Desktop-style multi-select for virtualized rows (id-based).
+ * Desktop-style row selection for virtualized rows (id-based).
  *
- * - Click → select only that row (new anchor)
- * - Ctrl / Cmd + Click → toggle that row (new anchor)
- * - Shift + Click → select range from anchor → clicked (anchor kept)
+ * Multi:
+ * - Click → select only that row
+ * - Ctrl/Cmd+Click → toggle
+ * - Shift+Click → range
+ * - With checkbox column, plain click toggles (add/remove)
  *
- * When the table shows a checkbox column, the host typically uses
- * {@link select} for plain clicks so existing picks are kept.
+ * Single:
+ * - Click → select that row only; click again → clear
+ * - No multi-select via Shift / Ctrl / select-all
  */
 export class SelectionModel<T> {
   private readonly trackBy: (item: T) => RowId;
@@ -40,7 +43,7 @@ export class SelectionModel<T> {
   }
 
   /**
-   * PC / Finder style pointer selection against the current visible/ordered list.
+   * Pointer selection against the current visible/ordered list.
    * `items` must be the same order the user sees (e.g. displayItems()).
    */
   handleClick(
@@ -48,7 +51,15 @@ export class SelectionModel<T> {
     items: Array<T | null>,
     index: number,
     mods: SelectionClickModifiers,
+    selectionType: SelectionType | `${SelectionType}` = SelectionType.multi,
   ): void {
+    const single = selectionType === SelectionType.single;
+
+    if (single) {
+      this.handleSingleClick(item);
+      return;
+    }
+
     if (mods.shiftKey) {
       this.selectRangeTo(item, items, index);
       return;
@@ -60,6 +71,41 @@ export class SelectionModel<T> {
     }
 
     this.selectOnly(item);
+  }
+
+  /** Single mode: select this row, or clear if it was already the only selection. */
+  handleSingleClick(item: T): void {
+    if (this.isSelected(item)) {
+      this.clear();
+      return;
+    }
+    this.selectOnly(item);
+  }
+
+  /**
+   * Checkbox / checkbox-column row click.
+   * Multi → toggle; single → selectOnly or clear if already selected.
+   */
+  handleCheckboxClick(
+    item: T,
+    items: Array<T | null>,
+    index: number,
+    mods: SelectionClickModifiers,
+    selectionType: SelectionType | `${SelectionType}` = SelectionType.multi,
+  ): void {
+    const single = selectionType === SelectionType.single;
+
+    if (single) {
+      this.handleSingleClick(item);
+      return;
+    }
+
+    if (mods.shiftKey) {
+      this.selectRangeTo(item, items, index);
+      return;
+    }
+
+    this.toggle(item);
   }
 
   /** Clear all, select one row, set anchor. */

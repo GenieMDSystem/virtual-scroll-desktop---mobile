@@ -2,11 +2,12 @@
   --bg: #f3f5f7;
   --surface: #ffffff;
   --header-bg: #f7f9fb;
-  --text: #1a2330;
-  --muted: #5c6b7a;
-  --border: #d8e0e8;
-  --row-border: #e8eef3;
-  --row-hover: #f2f6fa;
+  --text: #121820;
+  --muted: #3d4a57;
+  --border: #c9d3de;
+  --row-border: #e2e8ef;
+  --row-hover: #eef3f8;
+  --font-size: 15px;
   color-scheme: light;
 }
 
@@ -24,6 +25,8 @@ body {
 
 body {
   font-family: 'IBM Plex Sans', 'Segoe UI', sans-serif;
+  font-size: var(--font-size);
+  line-height: 1.45;
   color: var(--text);
   background:
     radial-gradient(1200px 600px at 10% -10%, #dfeaf5 0%, transparent 55%),

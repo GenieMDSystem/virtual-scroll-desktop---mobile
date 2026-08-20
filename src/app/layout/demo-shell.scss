@@ -5,7 +5,7 @@
 
 .shell {
   display: grid;
-  grid-template-columns: minmax(220px, 260px) 1fr;
+  grid-template-columns: minmax(240px, 280px) 1fr;
   height: 100%;
   min-height: 100dvh;
 }
@@ -14,77 +14,79 @@
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
-  padding: 1.25rem 1rem 1.5rem;
+  padding: 1.35rem 1rem 1.5rem;
   border-right: 1px solid var(--border);
-  background: rgb(255 255 255 / 72%);
+  background: rgb(255 255 255 / 88%);
   backdrop-filter: blur(8px);
 }
 
 .shell__brand {
-  padding: 0 0.35rem;
+  padding: 0 0.4rem;
 
   h1 {
-    margin: 0.2rem 0 0;
-    font-size: 1.25rem;
+    margin: 0.25rem 0 0;
+    font-size: 1.375rem;
     font-weight: 700;
     letter-spacing: -0.03em;
+    color: var(--text);
   }
 }
 
 .shell__eyebrow {
   margin: 0;
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--muted);
+  color: #2a3a4a;
 }
 
 .shell__tagline {
-  margin: 0.35rem 0 0;
-  font-size: 0.8125rem;
+  margin: 0.4rem 0 0;
+  font-size: 0.9375rem;
   color: var(--muted);
 }
 
 .shell__nav {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 0.4rem;
 }
 
 .shell__link {
   display: flex;
   flex-direction: column;
-  gap: 0.15rem;
-  padding: 0.55rem 0.65rem;
+  gap: 0.2rem;
+  padding: 0.7rem 0.75rem;
   border-radius: 8px;
   text-decoration: none;
-  color: inherit;
+  color: var(--text);
   border: 1px solid transparent;
 
   &:hover {
-    background: #f2f6fa;
+    background: #eef3f8;
   }
 
   &--active {
     background: #e8f0f8;
-    border-color: #c5d8eb;
+    border-color: #b7cce0;
 
     .shell__link-label {
-      color: #1f4d7a;
+      color: #163a5c;
     }
   }
 }
 
 .shell__link-label {
-  font-size: 0.875rem;
+  font-size: 1rem;
   font-weight: 650;
+  color: var(--text);
 }
 
 .shell__link-blurb {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   color: var(--muted);
-  line-height: 1.35;
+  line-height: 1.4;
 }
 
 .shell__content {
@@ -112,7 +114,7 @@
   }
 
   .shell__link {
-    flex: 1 1 140px;
+    flex: 1 1 150px;
   }
 
   .shell__link-blurb {

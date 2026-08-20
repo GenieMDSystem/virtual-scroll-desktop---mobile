@@ -22,7 +22,7 @@ export {
   sortValue,
 } from './utils/sort';
 export type { ResolvedColumnWidth } from './utils/column-layout';
-export { ColumnMode, SortDirection, SortType } from './models/virtual-scroll.models';
+export { ColumnMode, SelectionType, SortDirection, SortType } from './models/virtual-scroll.models';
 export type {
   CacheStats,
   ColumnDef,

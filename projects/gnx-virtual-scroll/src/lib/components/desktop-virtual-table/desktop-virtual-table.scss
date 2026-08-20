@@ -24,23 +24,25 @@
 
   h2 {
     margin: 0;
-    font-size: 1.125rem;
+    font-size: 1.2rem;
     font-weight: 650;
     letter-spacing: -0.02em;
+    color: var(--text);
   }
 
   p {
-    margin: 0.25rem 0 0;
+    margin: 0.3rem 0 0;
     color: var(--muted);
-    font-size: 0.8125rem;
+    font-size: 0.875rem;
+    line-height: 1.4;
   }
 }
 
 .pill {
   flex-shrink: 0;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 650;
-  padding: 0.3rem 0.55rem;
+  padding: 0.35rem 0.6rem;
   border-radius: 6px;
 
   &--loading {
@@ -103,7 +105,7 @@
 .pane-header {
   display: flex;
   flex-shrink: 0;
-  height: 40px;
+  height: 44px;
   background: var(--header-bg);
   border-bottom: 1px solid var(--border);
   overflow: hidden;
@@ -184,15 +186,15 @@
   align-items: center;
   justify-content: center;
   gap: 0.1rem;
-  min-width: 1.15rem;
-  height: 1.35rem;
+  min-width: 1.25rem;
+  height: 1.45rem;
   margin-left: 0.15rem;
-  padding: 0 0.15rem;
+  padding: 0 0.2rem;
   border: 1px solid transparent;
   border-radius: 4px;
   background: transparent;
   cursor: pointer;
-  color: #9aa8b5;
+  color: #5a6b7c;
 
   &:hover {
     background: #e8f0f8;
@@ -212,16 +214,16 @@
 }
 
 .sort-btn__icon {
-  width: 0.7rem;
-  height: 0.95rem;
+  width: 0.75rem;
+  height: 1rem;
   display: block;
 }
 
 .sort-btn__order {
-  font-size: 0.625rem;
+  font-size: 0.6875rem;
   font-weight: 700;
   line-height: 1;
-  color: #1f4d7a;
+  color: #163a5c;
 }
 
 .sort-btn__up,
@@ -236,19 +238,20 @@
   flex-shrink: 0;
   box-sizing: border-box;
   min-width: 0; /* override flex min-content so header icons can't widen the column */
-  padding: 0 0.75rem;
+  padding: 0 0.85rem;
   display: flex;
   align-items: center;
   border-right: 1px solid var(--border);
-  font-size: 0.8125rem;
+  font-size: 0.9375rem;
+  color: var(--text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .th {
-  font-weight: 600;
-  height: 40px;
+  font-weight: 650;
+  height: 44px;
   color: var(--text);
   gap: 0.35rem;
   background: var(--header-bg);
@@ -262,18 +265,18 @@
 
 .th__pin {
   flex-shrink: 0;
-  font-size: 0.625rem;
+  font-size: 0.6875rem;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: #1f4d7a;
+  color: #163a5c;
   background: #e8f0f8;
-  border: 1px solid #c5d8eb;
+  border: 1px solid #b7cce0;
   border-radius: 3px;
-  padding: 0.05rem 0.3rem;
+  padding: 0.1rem 0.35rem;
 
   &--right {
-    color: #6b4f1f;
+    color: #5a4014;
     background: #f8f1e3;
     border-color: #e5d6b4;
   }

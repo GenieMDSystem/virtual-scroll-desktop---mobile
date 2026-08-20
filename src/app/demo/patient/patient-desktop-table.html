@@ -21,7 +21,7 @@
         <span class="toolbar__spacer"></span>
         <span class="toolbar__meta">
           Selected {{ dataSource.selection.count() | number }}
-          · ☐ column · header select-all · ⌘/Ctrl · ⇧ · Esc
+          · row click toggles · Esc clears
         </span>
         <button
           type="button"
@@ -41,6 +41,7 @@
     [columns]="columns"
     [selection]="dataSource.selection"
     [checkboxSelection]="checkboxSelection()"
+    [selectionType]="selectionType()"
     [columnMode]="columnMode()"
     [externalSorting]="externalSorting()"
     [sortType]="sortType()"

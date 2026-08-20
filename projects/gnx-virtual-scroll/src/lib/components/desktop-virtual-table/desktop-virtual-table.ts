@@ -26,6 +26,7 @@ import {
   ColumnDef,
   ColumnMode,
   ColumnView,
+  SelectionType,
   SortDirection,
   SortEvent,
   SortPropDir,
@@ -88,9 +89,18 @@ export class DesktopVirtualTableComponent<T> implements AfterViewInit {
   /**
    * Show a frozen checkbox column + header select-all (indeterminate when partial).
    * Requires {@link selection}. Default true when selection is provided.
+   * Header select-all is only shown for {@link SelectionType.multi}.
    */
   readonly checkboxSelection = input(true);
   readonly checkboxColumnWidth = input(44);
+  /**
+   * ngx-datatable-style selection:
+   * - single — one row; click again to clear
+   * - multi — multiple rows (default)
+   */
+  readonly selectionType = input<SelectionType | `${SelectionType}`>(
+    SelectionType.multi,
+  );
 
   /**
    * ngx-datatable-compatible flag.
@@ -238,6 +248,18 @@ export class DesktopVirtualTableComponent<T> implements AfterViewInit {
 
   readonly showCheckboxColumn = computed(
     () => this.checkboxSelection() && this.selection() != null,
+  );
+
+  readonly resolvedSelectionType = computed((): SelectionType => {
+    return this.selectionType() === SelectionType.single
+      ? SelectionType.single
+      : SelectionType.multi;
+  });
+
+  readonly showHeaderSelectAll = computed(
+    () =>
+      this.showCheckboxColumn() &&
+      this.resolvedSelectionType() === SelectionType.multi,
   );
 
   readonly leftWidth = computed(
@@ -474,6 +496,9 @@ export class DesktopVirtualTableComponent<T> implements AfterViewInit {
 
   onHeaderCheckboxClick(event: Event): void {
     event.stopPropagation();
+    if (!this.showHeaderSelectAll()) {
+      return;
+    }
     const sel = this.selection();
     if (!sel) {
       return;
@@ -487,13 +512,10 @@ export class DesktopVirtualTableComponent<T> implements AfterViewInit {
     if (!sel) {
       return;
     }
-    if (event.shiftKey) {
-      event.preventDefault();
-      sel.selectRangeTo(row, this.displayItems(), index);
-      return;
-    }
-    // Checkbox always toggles (multi-select), unlike plain row click
-    sel.toggle(row);
+    sel.handleCheckboxClick(row, this.displayItems(), index, {
+      shiftKey: event.shiftKey,
+      metaOrCtrl: event.metaKey || event.ctrlKey,
+    }, this.resolvedSelectionType());
   }
 
   onRowClick(row: T, index: number, event: MouseEvent): void {
@@ -517,15 +539,16 @@ export class DesktopVirtualTableComponent<T> implements AfterViewInit {
       shiftKey: event.shiftKey,
       metaOrCtrl: event.metaKey || event.ctrlKey,
     };
+    const type = this.resolvedSelectionType();
 
-    // With checkbox column: plain click adds the row (does not clear others).
-    // Shift / Ctrl|Cmd keep range / toggle behavior.
+    // Checkbox column: plain click toggles (add or remove) in multi;
+    // single mode selects / clears. Shift / Ctrl|Cmd use handleClick.
     if (this.showCheckboxColumn() && !mods.shiftKey && !mods.metaOrCtrl) {
-      sel.select(row);
+      sel.handleCheckboxClick(row, this.displayItems(), index, mods, type);
       return;
     }
 
-    sel.handleClick(row, this.displayItems(), index, mods);
+    sel.handleClick(row, this.displayItems(), index, mods, type);
   }
 
   onTableKeydown(event: KeyboardEvent): void {
@@ -534,7 +557,11 @@ export class DesktopVirtualTableComponent<T> implements AfterViewInit {
       return;
     }
     const metaOrCtrl = event.metaKey || event.ctrlKey;
-    if (metaOrCtrl && (event.key === 'a' || event.key === 'A')) {
+    if (
+      metaOrCtrl &&
+      (event.key === 'a' || event.key === 'A') &&
+      this.resolvedSelectionType() === SelectionType.multi
+    ) {
       event.preventDefault();
       sel.selectAll(this.displayItems());
     }

@@ -9,6 +9,7 @@ import { FormsModule } from '@angular/forms';
 import {
   ColumnMode,
   DesktopVirtualTableComponent,
+  SelectionType,
   SortEvent,
   SortType,
   VirtualCellDef,
@@ -43,6 +44,9 @@ export class PatientDesktopTableComponent {
   readonly externalSorting = input(true);
   readonly sortType = input<SortType | `${SortType}`>(SortType.single);
   readonly checkboxSelection = input(true);
+  readonly selectionType = input<SelectionType | `${SelectionType}`>(
+    SelectionType.multi,
+  );
   /** Show a compact filter row above the table */
   readonly showFilter = input(false);
   /** Show selection count + clear */
