@@ -8,6 +8,8 @@ import {
   RowId,
   SortState,
   VirtualDataSourceConfig,
+  VirtualFetchFn,
+  VirtualFilterFn,
 } from '../models/virtual-scroll.models';
 
 async function resolvePage<T>(
@@ -18,18 +20,25 @@ async function resolvePage<T>(
 
 /**
  * Generic virtual data source shared by desktop table + mobile list.
- * Supports offset windowing, cursor pagination, and infinite append — with LRU page cache.
+ *
+ * Two modes:
+ * - **Remote** (`fetchPage`): lazy page loads — infinite / offset / cursor
+ * - **Static** (`data`): all rows already in memory — no fetch; CDK still virtualizes the DOM
  */
 export class VirtualDataSource<T> {
   private _strategy: PaginationStrategy;
   readonly pageSize: number;
 
   private readonly trackBy: (item: T) => RowId;
-  private readonly fetchPage: VirtualDataSourceConfig<T>['fetchPage'];
+  private fetchPage: VirtualFetchFn<T> | undefined;
   private readonly prefetchPages: number;
   private readonly loadMoreThreshold: number;
   private readonly estimatedTotal?: number;
+  private readonly filterFn?: VirtualFilterFn<T>;
   private readonly cache: VirtualCacheManager<T>;
+
+  /** Full source array when in static mode */
+  private rawData: T[] | null = null;
 
   private readonly inflight = new Map<string, Promise<void>>();
   private nextCursor: string | null = null;
@@ -63,28 +72,64 @@ export class VirtualDataSource<T> {
     return this._strategy;
   }
 
+  /** True when using in-memory `data` (no fetchPage lazy loading). */
+  get isStatic(): boolean {
+    return this._strategy === 'static' || this.rawData != null;
+  }
+
   constructor(config: VirtualDataSourceConfig<T>) {
+    if (!config.data && !config.fetchPage) {
+      throw new Error(
+        'VirtualDataSource requires either `data` (all rows in memory) or `fetchPage` (lazy/remote).',
+      );
+    }
+
     this.fetchPage = config.fetchPage;
     this.trackBy = config.trackBy;
-    this._strategy = config.strategy ?? 'infinite';
     this.pageSize = config.pageSize ?? 50;
     this.prefetchPages = config.prefetchPages ?? 1;
     this.loadMoreThreshold = config.loadMoreThreshold ?? 15;
     this.estimatedTotal = config.estimatedTotal;
+    this.filterFn = config.filterFn;
     this.cache = new VirtualCacheManager<T>(config.maxCachedPages ?? 24);
 
-    if (this.estimatedTotal && this._strategy === 'offset') {
-      this._totalCount.set(this.estimatedTotal);
-      this._items.set(new Array<T | null>(this.estimatedTotal).fill(null));
+    if (config.data) {
+      this.rawData = config.data.slice();
+      this._strategy = 'static';
+      this.applyStaticView();
+      this.initialized = true;
+    } else {
+      this._strategy = config.strategy ?? 'infinite';
+      if (this.estimatedTotal && this._strategy === 'offset') {
+        this._totalCount.set(this.estimatedTotal);
+        this._items.set(new Array<T | null>(this.estimatedTotal).fill(null));
+      }
     }
   }
 
-  /** Bootstrap first page(s). Safe to call multiple times. */
+  /**
+   * Convenience: create a static (all-data-in-memory) data source.
+   * Virtual scroll still only renders visible rows.
+   */
+  static fromArray<T>(
+    data: T[],
+    options: Omit<VirtualDataSourceConfig<T>, 'data' | 'fetchPage' | 'strategy'>,
+  ): VirtualDataSource<T> {
+    return new VirtualDataSource<T>({ ...options, data, strategy: 'static' });
+  }
+
+  /** Bootstrap first page(s). No-op when already initialized (incl. static). */
   async init(): Promise<void> {
     if (this.initialized) {
       return;
     }
     this.initialized = true;
+
+    if (this.isStatic) {
+      this.applyStaticView();
+      return;
+    }
+
     if (this.strategy === 'offset') {
       await this.ensureRange(0, this.pageSize - 1);
     } else {
@@ -93,10 +138,31 @@ export class VirtualDataSource<T> {
   }
 
   /**
+   * Replace / provide the full in-memory dataset (switches to static mode).
+   * Use when the API already returned everything and you don't need lazy fetch.
+   */
+  setData(data: T[]): void {
+    this.rawData = data.slice();
+    this._strategy = 'static';
+    this.cache.clear();
+    this.inflight.clear();
+    this.nextCursor = null;
+    this.appendOffset = 0;
+    this._hasMore.set(false);
+    this._loading.set(false);
+    this._error.set(null);
+    this.initialized = true;
+    this.applyStaticView();
+  }
+
+  /**
    * React to CDK viewport range. Offset strategy window-loads pages;
-   * infinite/cursor strategies append near the end.
+   * infinite/cursor strategies append near the end. Static mode: no-op.
    */
   onViewportRange(start: number, end: number): void {
+    if (this.isStatic) {
+      return;
+    }
     if (this.strategy === 'offset') {
       void this.ensureRange(start, end);
       return;
@@ -109,10 +175,13 @@ export class VirtualDataSource<T> {
   }
 
   async loadMore(): Promise<void> {
-    if (this.strategy === 'offset') {
+    if (this.isStatic || this.strategy === 'offset') {
       return;
     }
     if (!this._hasMore() || this._loading()) {
+      return;
+    }
+    if (!this.fetchPage) {
       return;
     }
 
@@ -147,7 +216,7 @@ export class VirtualDataSource<T> {
                 nextCursor: this.nextCursor,
                 totalCount: this._totalCount(),
               }
-            : await resolvePage(this.fetchPage(request));
+            : await resolvePage(this.fetchPage!(request));
 
         if (cached == null) {
           this.cache.set(cacheKey, page.items);
@@ -175,7 +244,7 @@ export class VirtualDataSource<T> {
   }
 
   async ensureRange(start: number, end: number): Promise<void> {
-    if (this.strategy !== 'offset') {
+    if (this.isStatic || this.strategy !== 'offset') {
       return;
     }
 
@@ -197,6 +266,25 @@ export class VirtualDataSource<T> {
     if (strategy) {
       this._strategy = strategy;
     }
+
+    if (strategy === 'static' || (this.rawData && this._strategy === 'static')) {
+      this.initialized = true;
+      this.cache.clear();
+      this.inflight.clear();
+      this._error.set(null);
+      this._loading.set(false);
+      this._hasMore.set(false);
+      this.applyStaticView();
+      return;
+    }
+
+    // Leaving static → remote requires fetchPage
+    if (!this.fetchPage) {
+      this._error.set('Cannot use remote strategy without fetchPage');
+      return;
+    }
+
+    this.rawData = null;
     this.initialized = false;
     this.cache.clear();
     this.inflight.clear();
@@ -260,6 +348,11 @@ export class VirtualDataSource<T> {
   }
 
   private reloadQuery(): void {
+    if (this.isStatic) {
+      this.applyStaticView();
+      return;
+    }
+
     this.initialized = false;
     this.cache.clear();
     this.inflight.clear();
@@ -281,6 +374,55 @@ export class VirtualDataSource<T> {
     void this.init();
   }
 
+  /** Build filtered + sorted view from rawData (static mode). */
+  private applyStaticView(): void {
+    if (!this.rawData) {
+      return;
+    }
+
+    const query = this._filter();
+    let view = this.rawData;
+
+    if (query) {
+      view = view.filter((item) => this.matchesFilter(item, query));
+    }
+
+    const sort = this._sort();
+    if (sort) {
+      view = view.slice().sort((a, b) => this.compareStatic(a, b, sort));
+    }
+
+    this._items.set(view);
+    this._totalCount.set(view.length);
+    this._loadedCount.set(view.length);
+    this._hasMore.set(false);
+    this.bumpCache();
+  }
+
+  private matchesFilter(item: T, query: string): boolean {
+    if (this.filterFn) {
+      return this.filterFn(item, query);
+    }
+    return JSON.stringify(item).toLowerCase().includes(query.toLowerCase());
+  }
+
+  private compareStatic(a: T, b: T, sort: SortState): number {
+    const va = this.staticSortValue(a, sort.key);
+    const vb = this.staticSortValue(b, sort.key);
+    let cmp = 0;
+    if (va < vb) cmp = -1;
+    else if (va > vb) cmp = 1;
+    return sort.direction === 'asc' ? cmp : -cmp;
+  }
+
+  private staticSortValue(item: T, key: string): string | number {
+    const raw = (item as unknown as Record<string, unknown>)[key];
+    if (raw == null) return '';
+    if (raw instanceof Date) return raw.getTime();
+    if (typeof raw === 'number') return raw;
+    return String(raw).toLowerCase();
+  }
+
   private queryParams(): Pick<PageRequest, 'sort' | 'filter'> {
     return {
       sort: this._sort(),
@@ -295,6 +437,15 @@ export class VirtualDataSource<T> {
 
   patchById(id: RowId, updater: (item: T) => T): void {
     const match = (item: T) => this.trackBy(item) === id;
+
+    if (this.rawData) {
+      this.rawData = this.rawData.map((item) =>
+        match(item) ? updater(item) : item,
+      );
+      this.applyStaticView();
+      return;
+    }
+
     this.cache.patchItem(match, updater);
     this._items.update((list) =>
       list.map((item) => (item && match(item) ? updater(item) : item)),
@@ -310,6 +461,10 @@ export class VirtualDataSource<T> {
   };
 
   private async loadOffsetPage(pageIndex: number): Promise<void> {
+    if (!this.fetchPage) {
+      return;
+    }
+
     const cacheKey = `offset:${this.queryKey()}:${pageIndex}`;
     const existing = this.cache.get(cacheKey);
     if (existing) {
@@ -329,7 +484,7 @@ export class VirtualDataSource<T> {
       try {
         const offset = pageIndex * this.pageSize;
         const page = await resolvePage(
-          this.fetchPage({
+          this.fetchPage!({
             limit: this.pageSize,
             offset,
             ...this.queryParams(),
@@ -341,7 +496,6 @@ export class VirtualDataSource<T> {
         if (page.totalCount != null && page.totalCount !== this._totalCount()) {
           this._totalCount.set(page.totalCount);
           this._items.set(new Array<T | null>(page.totalCount).fill(null));
-          // Re-paint all cached pages after resize
           for (let i = 0; i <= pageIndex; i++) {
             const key = `offset:${this.queryKey()}:${i}`;
             const cached = this.cache.get(key);

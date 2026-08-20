@@ -4,9 +4,12 @@
       <p class="app__eyebrow">GNX · Sample Harness</p>
       <h1>{{ title }}</h1>
       <p class="app__sub">
-        3-pane frozen sync · sort / filter / selection · Patient adapter
+        3-pane frozen · sort / filter · lazy <em>or</em> all-data (static)
         ({{ dataSource.source.totalCount() | number }} records) ·
         strategy <strong>{{ dataSource.strategy() }}</strong>
+        @if (dataSource.source.isStatic) {
+          · in-memory
+        }
       </p>
     </div>
 

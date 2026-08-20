@@ -14,7 +14,12 @@ export class App {
   readonly title = 'Enterprise CDK Virtual Scroll — Segment 5';
   readonly dataSource = inject(PatientVirtualDataSource);
 
-  readonly strategies: PaginationStrategy[] = ['infinite', 'offset', 'cursor'];
+  readonly strategies: PaginationStrategy[] = [
+    'infinite',
+    'offset',
+    'cursor',
+    'static',
+  ];
 
   setStrategy(strategy: PaginationStrategy): void {
     this.dataSource.setStrategy(strategy);

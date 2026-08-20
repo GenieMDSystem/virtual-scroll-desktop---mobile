@@ -18,6 +18,8 @@ const LAST_NAMES = [
 ];
 
 export const PATIENT_TOTAL_COUNT = 50_000;
+/** Smaller full dataset for static (all-in-memory) demo mode */
+export const PATIENT_STATIC_COUNT = 5_000;
 const LATENCY_MS = 220;
 const baseTime = Date.now();
 const statusOverrides = new Map<string, PatientStatus>();
@@ -148,4 +150,13 @@ export function fetchPatientsPage(
 export function patchPatientStatus(id: string, status: PatientStatus): void {
   statusOverrides.set(id, status);
   indexCache = null;
+}
+
+/** Build a full in-memory patient array (for static / no-fetch mode). */
+export function buildPatientsArray(count = PATIENT_STATIC_COUNT): Patient[] {
+  const items = new Array<Patient>(count);
+  for (let i = 0; i < count; i++) {
+    items[i] = buildPatient(i);
+  }
+  return items;
 }

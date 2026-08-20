@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
+    "prestart": "rm -rf .angular/cache",
     "start": "ng serve --port 4210",
     "build": "ng build virtual-scroll-demo",
     "build:lib": "ng build gnx-virtual-scroll",

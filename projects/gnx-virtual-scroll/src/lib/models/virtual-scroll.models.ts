@@ -1,7 +1,7 @@
 import { TemplateRef } from '@angular/core';
 
-/** Offset | cursor append | infinite append */
-export type PaginationStrategy = 'offset' | 'cursor' | 'infinite';
+/** Offset | cursor append | infinite append | full in-memory array */
+export type PaginationStrategy = 'offset' | 'cursor' | 'infinite' | 'static';
 
 export type RowId = string | number;
 
@@ -34,8 +34,20 @@ export type VirtualFetchFn<T> = (
   request: PageRequest,
 ) => Promise<PageResult<T>> | import('rxjs').Observable<PageResult<T>>;
 
+export type VirtualFilterFn<T> = (item: T, query: string) => boolean;
+
 export interface VirtualDataSourceConfig<T> {
-  fetchPage: VirtualFetchFn<T>;
+  /**
+   * Lazy / server page loader (remote mode).
+   * Called when the viewport needs more rows. Not used when `data` is set.
+   */
+  fetchPage?: VirtualFetchFn<T>;
+  /**
+   * Full in-memory dataset (static mode).
+   * Virtual scroll still only *renders* visible rows; no network / lazy fetch.
+   * Provide this **or** `fetchPage`.
+   */
+  data?: T[];
   trackBy: (item: T) => RowId;
   strategy?: PaginationStrategy;
   pageSize?: number;
@@ -47,6 +59,8 @@ export interface VirtualDataSourceConfig<T> {
   loadMoreThreshold?: number;
   /** Simulated / known total before first fetch (optional) */
   estimatedTotal?: number;
+  /** Custom filter for static mode (default: JSON stringify includes query) */
+  filterFn?: VirtualFilterFn<T>;
 }
 
 export type FreezeSide = 'left' | 'right';

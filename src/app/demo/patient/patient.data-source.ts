@@ -7,6 +7,7 @@ import {
 } from 'gnx-virtual-scroll';
 import {
   PATIENT_TOTAL_COUNT,
+  buildPatientsArray,
   fetchPatientsPage,
   patchPatientStatus,
 } from './patient.mock-api';
@@ -31,12 +32,23 @@ export class PatientVirtualDataSource {
     maxCachedPages: 24,
     loadMoreThreshold: 20,
     estimatedTotal: PATIENT_TOTAL_COUNT,
+    filterFn: (p, q) =>
+      `${p.id} ${p.patientName} ${p.kByName} ${p.department} ${p.status}`
+        .toLowerCase()
+        .includes(q.toLowerCase()),
   });
 
   readonly selection = new SelectionModel<Patient>((p) => p.id);
 
   setStrategy(strategy: PaginationStrategy): void {
     this._strategy.set(strategy);
+
+    if (strategy === 'static') {
+      // All rows in memory — no fetchPage / lazy loading
+      this.source.setData(buildPatientsArray());
+      return;
+    }
+
     this.source.reset(strategy);
   }
 

@@ -28,5 +28,6 @@ export type {
   VirtualCellContext,
   VirtualDataSourceConfig,
   VirtualFetchFn,
+  VirtualFilterFn,
   VirtualItemContext,
 } from './models/virtual-scroll.models';
