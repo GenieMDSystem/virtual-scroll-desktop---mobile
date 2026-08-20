@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve",
+    "start": "ng serve --port 4210",
     "build": "ng build virtual-scroll-demo",
     "build:lib": "ng build gnx-virtual-scroll",
     "watch": "ng build virtual-scroll-demo --watch --configuration development",
