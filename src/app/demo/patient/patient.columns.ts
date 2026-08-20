@@ -1,4 +1,4 @@
-import { ColumnDef } from '../../virtual-scroll';
+import { ColumnDef } from '@gnx/virtual-scroll';
 import { Patient } from './patient.model';
 
 /**

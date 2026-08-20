@@ -2,8 +2,9 @@ import { Injectable, signal } from '@angular/core';
 import {
   PaginationStrategy,
   SelectionModel,
+  SortState,
   VirtualDataSource,
-} from '../../virtual-scroll';
+} from '@gnx/virtual-scroll';
 import {
   PATIENT_TOTAL_COUNT,
   fetchPatientsPage,
@@ -47,7 +48,7 @@ export class PatientVirtualDataSource {
     this.source.setSort(key);
   }
 
-  applySort(state: import('../../virtual-scroll').SortState | null): void {
+  applySort(state: SortState | null): void {
     this.source.applySort(state);
   }
 

@@ -3,7 +3,7 @@ import { DatePipe } from '@angular/common';
 import {
   MobileVirtualListComponent,
   VirtualItemDef,
-} from '../../virtual-scroll';
+} from '@gnx/virtual-scroll';
 import { PatientVirtualDataSource } from './patient.data-source';
 import { Patient } from './patient.model';
 

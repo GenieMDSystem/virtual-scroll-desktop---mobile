@@ -2,7 +2,7 @@ import { Component, inject } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { ViewportSwitcherComponent } from './features/viewport/viewport-switcher';
 import { PatientVirtualDataSource } from './demo/patient/patient.data-source';
-import { PaginationStrategy } from './virtual-scroll';
+import { PaginationStrategy } from '@gnx/virtual-scroll';
 
 @Component({
   selector: 'app-root',

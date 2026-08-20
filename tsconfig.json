@@ -4,6 +4,10 @@
   "compileOnSave": false,
   "compilerOptions": {
     "strict": true,
+    "paths": {
+      "@gnx/virtual-scroll": ["./projects/gnx-virtual-scroll/src/public-api.ts"],
+      "gnx-virtual-scroll": ["./projects/gnx-virtual-scroll/src/public-api.ts"]
+    },
     "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": true,
     "noImplicitReturns": true,
@@ -28,6 +32,12 @@
     },
     {
       "path": "./tsconfig.spec.json"
+    },
+    {
+      "path": "./projects/gnx-virtual-scroll/tsconfig.lib.json"
+    },
+    {
+      "path": "./projects/gnx-virtual-scroll/tsconfig.spec.json"
     }
   ]
 }
