@@ -1,4 +1,8 @@
-import { ColumnDef, ColumnView } from '../models/virtual-scroll.models';
+import {
+  ColumnDef,
+  ColumnMode,
+  ColumnView,
+} from '../models/virtual-scroll.models';
 
 export interface ResolvedColumnWidth {
   key: string;
@@ -17,8 +21,7 @@ const DEFAULT_MAX = 1000;
 export function resolveColumnMeta<T>(col: ColumnDef<T>): ResolvedColumnWidth {
   const minWidth = col.minWidth ?? Math.min(col.width, DEFAULT_MIN);
   const maxWidth = col.maxWidth ?? DEFAULT_MAX;
-  const flex =
-    col.flex ?? (col.frozen ? 0 : 1);
+  const flex = col.flex ?? (col.frozen ? 0 : 1);
   return {
     key: col.key,
     width: clamp(col.width, minWidth, maxWidth),
@@ -31,17 +34,18 @@ export function resolveColumnMeta<T>(col: ColumnDef<T>): ResolvedColumnWidth {
 }
 
 /**
- * Applies base (user/preferred) widths, then grows flex columns so the table
- * fills the parent when there is leftover space.
+ * Applies base (user/preferred) widths, then optionally grows columns to fill
+ * leftover container space based on {@link ColumnMode}.
  *
  * Never shrinks sibling columns when preferred widths exceed the container —
- * overflow is handled by horizontal scroll. That way dragging one column
- * wider only grows that column.
+ * overflow is handled by horizontal scroll so drag-resize of one column does
+ * not steal width from others.
  */
 export function fitColumnsToContainer(
   metas: ResolvedColumnWidth[],
   containerWidth: number,
   baseWidths: Record<string, number>,
+  mode: ColumnMode = ColumnMode.force,
 ): Record<string, number> {
   const widths: Record<string, number> = {};
   for (const meta of metas) {
@@ -49,36 +53,63 @@ export function fitColumnsToContainer(
     widths[meta.key] = clamp(preferred, meta.minWidth, meta.maxWidth);
   }
 
-  if (containerWidth <= 0) {
+  if (mode === ColumnMode.standard || containerWidth <= 0) {
     return roundWidths(metas, widths);
   }
 
   const total = metas.reduce((s, m) => s + widths[m.key], 0);
 
-  if (total < containerWidth) {
-    let leftover = containerWidth - total;
-    const growers = metas.filter(
-      (m) => m.flex > 0 && widths[m.key] < m.maxWidth,
-    );
-    const flexSum = growers.reduce((s, m) => s + m.flex, 0);
-    if (flexSum > 0 && leftover > 0) {
-      // Proportional grow respecting maxWidth
-      let remainingFlex = flexSum;
-      let remainingSpace = leftover;
-      for (const m of growers) {
-        if (remainingFlex <= 0 || remainingSpace <= 0) break;
-        const share = (remainingSpace * m.flex) / remainingFlex;
-        const next = Math.min(m.maxWidth, widths[m.key] + share);
-        const gained = next - widths[m.key];
-        widths[m.key] = next;
-        remainingSpace -= gained;
-        remainingFlex -= m.flex;
-      }
+  // Combined widths already fill / exceed the grid → keep preferred (ngx force)
+  if (total >= containerWidth) {
+    return roundWidths(metas, widths);
+  }
+
+  let leftover = containerWidth - total;
+  const growers = pickGrowers(metas, widths, mode);
+  const weightSum = growers.reduce((s, m) => s + growWeight(m, mode), 0);
+
+  if (weightSum > 0 && leftover > 0) {
+    let remainingWeight = weightSum;
+    let remainingSpace = leftover;
+    for (const m of growers) {
+      if (remainingWeight <= 0 || remainingSpace <= 0) break;
+      const weight = growWeight(m, mode);
+      const share = (remainingSpace * weight) / remainingWeight;
+      const next = Math.min(m.maxWidth, widths[m.key] + share);
+      const gained = next - widths[m.key];
+      widths[m.key] = next;
+      remainingSpace -= gained;
+      remainingWeight -= weight;
     }
   }
 
-  // total > containerWidth → keep preferred widths; do not compress siblings
   return roundWidths(metas, widths);
+}
+
+function pickGrowers(
+  metas: ResolvedColumnWidth[],
+  widths: Record<string, number>,
+  mode: ColumnMode,
+): ResolvedColumnWidth[] {
+  if (mode === ColumnMode.flex) {
+    return metas.filter((m) => m.flex > 0 && widths[m.key] < m.maxWidth);
+  }
+  // force: prefer flex>0 columns; if none can grow, spread across any under max
+  const flexGrowers = metas.filter(
+    (m) => m.flex > 0 && widths[m.key] < m.maxWidth,
+  );
+  if (flexGrowers.length) {
+    return flexGrowers;
+  }
+  return metas.filter((m) => widths[m.key] < m.maxWidth);
+}
+
+function growWeight(meta: ResolvedColumnWidth, mode: ColumnMode): number {
+  if (mode === ColumnMode.flex) {
+    return meta.flex;
+  }
+  // force: flex weight when set, otherwise proportional to current width
+  return meta.flex > 0 ? meta.flex : Math.max(meta.width, 1);
 }
 
 export function buildColumnViewsFromWidths<T>(
@@ -146,7 +177,9 @@ export function buildColumnViews<T>(columns: ColumnDef<T>[]): ColumnView<T>[] {
   });
 }
 
-export function totalColumnsWidth<T>(columns: Array<{ width: number }>): number {
+export function totalColumnsWidth<T>(
+  columns: Array<{ width: number }>,
+): number {
   return columns.reduce((sum, c) => sum + c.width, 0);
 }
 

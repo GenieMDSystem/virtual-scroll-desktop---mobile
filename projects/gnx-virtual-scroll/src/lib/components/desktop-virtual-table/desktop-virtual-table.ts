@@ -24,6 +24,7 @@ import { VirtualDataSource } from '../../data-source/virtual-data-source';
 import { VirtualCellDef } from '../../directives/virtual-cell.directive';
 import {
   ColumnDef,
+  ColumnMode,
   ColumnView,
   SortState,
 } from '../../models/virtual-scroll.models';
@@ -47,6 +48,7 @@ interface ResizeSession {
 /**
  * Three-pane virtual table: frozen left | scrollable center | frozen right.
  * Sorting mirrors ngx-datatable: internal (client) vs external (server/API).
+ * Column widths mirror ngx-datatable {@link ColumnMode}.
  */
 @Component({
   selector: 'gnx-desktop-virtual-table',
@@ -63,6 +65,15 @@ export class DesktopVirtualTableComponent<T> implements AfterViewInit {
   readonly rowHeight = input(44);
   readonly ariaLabel = input('Virtual table');
   readonly title = input('Desktop Virtual Table');
+  /**
+   * ngx-datatable-compatible width mode.
+   * Drag-resize stays available in every mode.
+   */
+  readonly columnMode = input<ColumnMode | `${ColumnMode}`>(ColumnMode.force);
+  /**
+   * @deprecated Prefer {@link columnMode}.
+   * `false` forces {@link ColumnMode.standard}; `true` defers to columnMode.
+   */
   readonly fitToContainer = input(true);
   readonly selection = input<SelectionModel<T> | null>(null);
   /**
@@ -144,15 +155,39 @@ export class DesktopVirtualTableComponent<T> implements AfterViewInit {
     this.columns().map((c) => resolveColumnMeta(c)),
   );
 
+  /** Effective mode after applying deprecated fitToContainer override. */
+  readonly resolvedColumnMode = computed((): ColumnMode => {
+    if (!this.fitToContainer()) {
+      return ColumnMode.standard;
+    }
+    switch (this.columnMode()) {
+      case ColumnMode.standard:
+      case 'standard':
+        return ColumnMode.standard;
+      case ColumnMode.flex:
+      case 'flex':
+        return ColumnMode.flex;
+      case ColumnMode.force:
+      case 'force':
+      default:
+        return ColumnMode.force;
+    }
+  });
+
   readonly liveWidths = computed(() => {
     const metas = this.columnMetas();
     const base = this.ensureBaseWidths(metas);
-    if (!this.fitToContainer()) {
+    const mode = this.resolvedColumnMode();
+    if (mode === ColumnMode.standard) {
       return base;
     }
-    const frozenSum = metas
-      .filter((m) => m.frozen)
-      .reduce((s, m) => s + (base[m.key] ?? m.width), 0);
+    const checkboxW = this.showCheckboxColumn()
+      ? this.checkboxColumnWidth()
+      : 0;
+    const frozenSum =
+      metas
+        .filter((m) => m.frozen)
+        .reduce((s, m) => s + (base[m.key] ?? m.width), 0) + checkboxW;
     const centerMetas = metas.filter((m) => !m.frozen);
     const centerBase: Record<string, number> = {};
     for (const m of centerMetas) {
@@ -162,6 +197,7 @@ export class DesktopVirtualTableComponent<T> implements AfterViewInit {
       centerMetas,
       Math.max(0, this.containerWidth() - frozenSum),
       centerBase,
+      mode,
     );
     return { ...base, ...fittedCenter };
   });

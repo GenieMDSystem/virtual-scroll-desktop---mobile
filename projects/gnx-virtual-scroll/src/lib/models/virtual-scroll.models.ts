@@ -66,6 +66,18 @@ export interface VirtualDataSourceConfig<T> {
 
 export type FreezeSide = 'left' | 'right';
 
+/**
+ * ngx-datatable-compatible column width distribution.
+ * - standard — declared / resized widths only (H-scroll if needed)
+ * - flex — leftover space by column `flex` weights
+ * - force — fill container when possible; overflow keeps standard widths
+ */
+export enum ColumnMode {
+  standard = 'standard',
+  flex = 'flex',
+  force = 'force',
+}
+
 export interface ColumnDef<T = unknown> {
   key: string;
   header: string;

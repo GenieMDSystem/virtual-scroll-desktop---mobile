@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/cor
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
+  ColumnMode,
   DesktopVirtualTableComponent,
   SortState,
   VirtualCellDef,
@@ -26,6 +27,7 @@ import { Patient } from './patient.model';
 export class PatientDesktopTableComponent {
   readonly dataSource = inject(PatientVirtualDataSource);
   readonly columns = PATIENT_COLUMNS;
+  readonly ColumnMode = ColumnMode;
   filterText = '';
 
   /**
@@ -34,6 +36,7 @@ export class PatientDesktopTableComponent {
    * - external=false → table sorts loaded rows client-side
    */
   readonly externalSorting = signal(true);
+  readonly columnMode = signal<ColumnMode>(ColumnMode.force);
 
   readonly onExternalSort = (state: SortState | null): void => {
     this.dataSource.source.applySort(state);
@@ -43,6 +46,10 @@ export class PatientDesktopTableComponent {
     this.externalSorting.set(external);
     // Clear any active sort when switching modes so state stays coherent
     this.dataSource.source.clearSort();
+  }
+
+  setColumnMode(mode: ColumnMode): void {
+    this.columnMode.set(mode);
   }
 
   applyFilter(): void {

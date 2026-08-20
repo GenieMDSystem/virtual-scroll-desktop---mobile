@@ -32,6 +32,34 @@
       </button>
     </div>
 
+    <div class="toolbar__sort-mode" role="group" aria-label="Column width mode">
+      <span class="toolbar__label">Columns</span>
+      <button
+        type="button"
+        class="toolbar__btn toolbar__btn--ghost"
+        [class.toolbar__btn--active]="columnMode() === ColumnMode.standard"
+        (click)="setColumnMode(ColumnMode.standard)"
+      >
+        Standard
+      </button>
+      <button
+        type="button"
+        class="toolbar__btn toolbar__btn--ghost"
+        [class.toolbar__btn--active]="columnMode() === ColumnMode.flex"
+        (click)="setColumnMode(ColumnMode.flex)"
+      >
+        Flex
+      </button>
+      <button
+        type="button"
+        class="toolbar__btn toolbar__btn--ghost"
+        [class.toolbar__btn--active]="columnMode() === ColumnMode.force"
+        (click)="setColumnMode(ColumnMode.force)"
+      >
+        Force
+      </button>
+    </div>
+
     <span class="toolbar__spacer"></span>
 
     <span class="toolbar__meta">
@@ -57,6 +85,7 @@
     [columns]="columns"
     [selection]="dataSource.selection"
     [checkboxSelection]="true"
+    [columnMode]="columnMode()"
     [externalSorting]="externalSorting()"
     (sort)="onExternalSort($event)"
     title="Desktop Virtual Table"

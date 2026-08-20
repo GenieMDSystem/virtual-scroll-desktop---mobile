@@ -15,6 +15,7 @@ export {
 } from './utils/column-layout';
 export { nextSortState, sortItemsInternal, sortValue } from './utils/sort';
 export type { ResolvedColumnWidth } from './utils/column-layout';
+export { ColumnMode } from './models/virtual-scroll.models';
 export type {
   CacheStats,
   ColumnDef,

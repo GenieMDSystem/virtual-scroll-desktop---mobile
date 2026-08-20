@@ -9,6 +9,7 @@
         {{ dataSource().totalCount() | number }} total ·
         table {{ tableWidth() }}px / container {{ containerWidth() || '—' }}px ·
         frozen L {{ leftWidth() }}px / R {{ rightWidth() }}px ·
+        columns {{ resolvedColumnMode() }} ·
         sort {{ externalSorting() ? 'external' : 'internal' }} ·
         {{ dataSource().strategy }}
       </p>
