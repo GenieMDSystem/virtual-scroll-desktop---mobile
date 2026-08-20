@@ -10,7 +10,8 @@
         table {{ tableWidth() }}px / container {{ containerWidth() || '—' }}px ·
         frozen L {{ leftWidth() }}px / R {{ rightWidth() }}px ·
         columns {{ resolvedColumnMode() }} ·
-        sort {{ externalSorting() ? 'external' : 'internal' }} ·
+        sort {{ externalSorting() ? 'external' : 'internal' }} /
+        {{ resolvedSortType() }} ·
         {{ dataSource().strategy }}
       </p>
     </div>
@@ -305,5 +306,8 @@
       <path class="sort-btn__up" d="M6 2 L10 7 H2 Z" />
       <path class="sort-btn__down" d="M6 14 L2 9 H10 Z" />
     </svg>
+    @if (sortOrder(col.key); as order) {
+      <span class="sort-btn__order">{{ order }}</span>
+    }
   </button>
 </ng-template>

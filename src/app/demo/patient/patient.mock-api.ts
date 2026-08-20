@@ -1,5 +1,5 @@
 import { Observable, delay, of } from 'rxjs';
-import { PageRequest, PageResult, SortState } from 'gnx-virtual-scroll';
+import { PageRequest, PageResult, SortPropDir } from 'gnx-virtual-scroll';
 import { Patient, PatientStatus } from './patient.model';
 
 const STATUSES: PatientStatus[] = ['pending', 'approved', 'rejected'];
@@ -72,13 +72,21 @@ function patientSortValue(p: Patient, key: string): string | number {
   return String(value ?? '').toLowerCase();
 }
 
-function resolveIndices(filter?: string, sort?: SortState | null): number[] | null {
+function dirAsc(dir: SortPropDir['dir']): boolean {
+  return dir !== 'desc';
+}
+
+function resolveIndices(
+  filter?: string,
+  sorts?: SortPropDir[] | null,
+): number[] | null {
   const q = (filter ?? '').trim().toLowerCase();
-  if (!q && !sort) {
+  const list = sorts?.length ? sorts : null;
+  if (!q && !list) {
     return null; // fast path: sequential indices 0..N
   }
 
-  const key = `${q}|${sort?.key ?? ''}|${sort?.direction ?? ''}`;
+  const key = `${q}|${list?.map((s) => `${s.prop}:${s.dir}`).join(',') ?? ''}`;
   if (indexCache?.key === key) {
     return indexCache.indices;
   }
@@ -98,16 +106,26 @@ function resolveIndices(filter?: string, sort?: SortState | null): number[] | nu
     }
   }
 
-  if (sort) {
-    const decorated = indices.map((i) => ({
-      i,
-      v: patientSortValue(buildPatient(i), sort.key),
-    }));
+  if (list?.length) {
+    const decorated = indices.map((i) => {
+      const p = buildPatient(i);
+      return {
+        i,
+        values: list.map((s) => patientSortValue(p, s.prop)),
+      };
+    });
     decorated.sort((a, b) => {
-      let cmp = 0;
-      if (a.v < b.v) cmp = -1;
-      else if (a.v > b.v) cmp = 1;
-      return sort.direction === 'asc' ? cmp : -cmp;
+      for (let si = 0; si < list.length; si++) {
+        const va = a.values[si];
+        const vb = b.values[si];
+        let cmp = 0;
+        if (va < vb) cmp = -1;
+        else if (va > vb) cmp = 1;
+        if (cmp !== 0) {
+          return dirAsc(list[si].dir) ? cmp : -cmp;
+        }
+      }
+      return 0;
     });
     indices = decorated.map((d) => d.i);
   }

@@ -26,7 +26,10 @@ import {
   ColumnDef,
   ColumnMode,
   ColumnView,
-  SortState,
+  SortDirection,
+  SortEvent,
+  SortPropDir,
+  SortType,
 } from '../../models/virtual-scroll.models';
 import { SelectionModel } from '../../selection/selection-model';
 import {
@@ -35,7 +38,13 @@ import {
   resolveColumnMeta,
   totalColumnsWidth,
 } from '../../utils/column-layout';
-import { nextSortState, sortItemsInternal } from '../../utils/sort';
+import {
+  buildSortEvent,
+  dirForProp,
+  nextSorts,
+  orderForProp,
+  sortItemsInternal,
+} from '../../utils/sort';
 
 interface ResizeSession {
   key: string;
@@ -86,17 +95,22 @@ export class DesktopVirtualTableComponent<T> implements AfterViewInit {
   /**
    * ngx-datatable-compatible flag.
    * - `false` (internal): sort currently loaded rows in the table
-   * - `true` (external): emit {@link sort} / call {@link sortChange}; host/API sorts
+   * - `true` (external): host/API sorts from {@link sort} / {@link sortChange}
    */
   readonly externalSorting = input(true);
 
-  /** Fired when externalSorting=true and the user clicks a sort icon. */
-  readonly sort = output<SortState | null>();
+  /**
+   * ngx-datatable {@link SortType}:
+   * - single — one column at a time (default)
+   * - multi — stack multiple column sorts
+   */
+  readonly sortType = input<SortType | `${SortType}`>(SortType.single);
 
-  /** Optional callback (same payload as {@link sort}) for template binding. */
-  readonly sortChange = input<(state: SortState | null) => void>(
-    () => undefined,
-  );
+  /** Fired on every sort-icon click (internal and external). */
+  readonly sort = output<SortEvent<T>>();
+
+  /** Optional callback (same payload as {@link sort}). */
+  readonly sortChange = input<(event: SortEvent<T>) => void>(() => undefined);
 
   readonly cellDefs = contentChildren(VirtualCellDef);
 
@@ -111,8 +125,8 @@ export class DesktopVirtualTableComponent<T> implements AfterViewInit {
   private readonly baseWidths = signal<Record<string, number>>({});
   readonly containerWidth = signal(0);
   readonly resizingKey = signal<string | null>(null);
-  /** Client-side sort state when externalSorting=false */
-  private readonly internalSort = signal<SortState | null>(null);
+  /** Client-side sorts when externalSorting=false */
+  private readonly internalSorts = signal<SortPropDir[]>([]);
 
   private resizeSession: ResizeSession | null = null;
   private frameObserver: ResizeObserver | null = null;
@@ -132,10 +146,16 @@ export class DesktopVirtualTableComponent<T> implements AfterViewInit {
     };
   }
 
-  readonly activeSort = computed(() =>
+  readonly resolvedSortType = computed((): SortType => {
+    return this.sortType() === SortType.multi
+      ? SortType.multi
+      : SortType.single;
+  });
+
+  readonly activeSorts = computed(() =>
     this.externalSorting()
-      ? this.dataSource().sort()
-      : this.internalSort(),
+      ? this.dataSource().sorts()
+      : this.internalSorts(),
   );
 
   /** Rows bound to CDK — internally sorted when externalSorting=false */
@@ -144,11 +164,11 @@ export class DesktopVirtualTableComponent<T> implements AfterViewInit {
     if (this.externalSorting()) {
       return items;
     }
-    const sort = this.internalSort();
-    if (!sort) {
+    const sorts = this.internalSorts();
+    if (!sorts.length) {
       return items;
     }
-    return sortItemsInternal(items, sort, this.columns());
+    return sortItemsInternal(items, sorts, this.columns());
   });
 
   readonly columnMetas = computed(() =>
@@ -260,11 +280,17 @@ export class DesktopVirtualTableComponent<T> implements AfterViewInit {
     void this.dataSource().init();
   });
 
-  /** Drop client sort when switching to external mode */
+  /** Drop client sorts when switching to external mode */
   private readonly sortingModeEffect = effect(() => {
     if (this.externalSorting()) {
-      this.internalSort.set(null);
+      this.internalSorts.set([]);
     }
+  });
+
+  private readonly sortTypeEffect = effect(() => {
+    // Changing single ↔ multi clears client sorts so order stays coherent
+    void this.resolvedSortType();
+    this.internalSorts.set([]);
   });
 
   private readonly columnsEffect = effect(() => {
@@ -412,20 +438,34 @@ export class DesktopVirtualTableComponent<T> implements AfterViewInit {
       return;
     }
 
-    const next = nextSortState(this.activeSort(), col.key);
+    const current = this.activeSorts();
+    const { sorts, prevValue, newValue } = nextSorts(
+      current,
+      col.key,
+      this.resolvedSortType(),
+    );
+    const sortEvent = buildSortEvent(col, prevValue, newValue, sorts);
 
-    if (this.externalSorting()) {
-      this.internalSort.set(null);
-      this.sort.emit(next);
-      this.sortChange()(next);
-    } else {
-      this.internalSort.set(next);
+    if (!this.externalSorting()) {
+      this.internalSorts.set(sorts);
     }
+
+    // Always emit (ngx-datatable style) — external hosts apply via applySorts
+    this.sort.emit(sortEvent);
+    this.sortChange()(sortEvent);
   }
 
-  sortDirection(colKey: string): 'asc' | 'desc' | null {
-    const sort = this.activeSort();
-    return sort?.key === colKey ? sort.direction : null;
+  sortDirection(colKey: string): SortDirection | null {
+    return dirForProp(this.activeSorts(), colKey);
+  }
+
+  /** 1-based multi-sort priority, or null */
+  sortOrder(colKey: string): number | null {
+    const sorts = this.activeSorts();
+    if (this.resolvedSortType() !== SortType.multi || sorts.length < 2) {
+      return null;
+    }
+    return orderForProp(sorts, colKey);
   }
 
   isSelected(row: T): boolean {

@@ -11,15 +11,45 @@ export interface PageRequest {
   offset?: number;
   /** Used by cursor / infinite-with-cursor */
   cursor?: string | null;
-  sort?: SortState | null;
+  /** Active sorts (empty / null = unsorted). First entry is primary. */
+  sort?: SortPropDir[] | null;
   filter?: string;
 }
 
-export type SortDirection = 'asc' | 'desc';
+export enum SortDirection {
+  asc = 'asc',
+  desc = 'desc',
+}
 
+export enum SortType {
+  single = 'single',
+  multi = 'multi',
+}
+
+/** ngx-datatable-compatible sort entry */
+export interface SortPropDir {
+  prop: string;
+  dir: SortDirection | 'asc' | 'desc';
+}
+
+/**
+ * @deprecated Prefer {@link SortPropDir} (`prop` / `dir`).
+ * Still accepted by applySort helpers for older hosts.
+ */
 export interface SortState {
   key: string;
-  direction: SortDirection;
+  direction: SortDirection | 'asc' | 'desc';
+}
+
+export interface InnerSortEvent<T = unknown> {
+  column: ColumnDef<T>;
+  prevValue: SortDirection | undefined;
+  newValue: SortDirection | undefined;
+}
+
+/** Fired whenever the user clicks a sort control (internal or external). */
+export interface SortEvent<T = unknown> extends InnerSortEvent<T> {
+  sorts: SortPropDir[];
 }
 
 export interface PageResult<T> {

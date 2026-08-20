@@ -6,11 +6,13 @@ import {
   PageResult,
   PaginationStrategy,
   RowId,
+  SortPropDir,
   SortState,
   VirtualDataSourceConfig,
   VirtualFetchFn,
   VirtualFilterFn,
 } from '../models/virtual-scroll.models';
+import { normalizeSortDir, normalizeSorts } from '../utils/sort';
 
 async function resolvePage<T>(
   result: Promise<PageResult<T>> | Observable<PageResult<T>>,
@@ -52,7 +54,7 @@ export class VirtualDataSource<T> {
   private readonly _error = signal<string | null>(null);
   private readonly _hasMore = signal(true);
   private readonly _cacheTick = signal(0);
-  private readonly _sort = signal<SortState | null>(null);
+  private readonly _sorts = signal<SortPropDir[]>([]);
   private readonly _filter = signal('');
 
   readonly items = this._items.asReadonly();
@@ -61,7 +63,22 @@ export class VirtualDataSource<T> {
   readonly loading = this._loading.asReadonly();
   readonly error = this._error.asReadonly();
   readonly hasMore = this._hasMore.asReadonly();
-  readonly sort = this._sort.asReadonly();
+  /** Active sorts (ngx-style). Empty = unsorted. */
+  readonly sorts = this._sorts.asReadonly();
+  /**
+   * Primary sort as legacy {@link SortState}, or null.
+   * @deprecated Prefer {@link sorts}
+   */
+  readonly sort = computed(() => {
+    const primary = this._sorts()[0];
+    if (!primary) {
+      return null;
+    }
+    return {
+      key: primary.prop,
+      direction: normalizeSortDir(primary.dir),
+    } satisfies SortState;
+  });
   readonly filter = this._filter.asReadonly();
   readonly cacheStats = computed(() => {
     this._cacheTick();
@@ -338,33 +355,49 @@ export class VirtualDataSource<T> {
   }
 
   setSort(key: string): void {
-    const current = this._sort();
-    let next: SortState | null;
-    if (!current || current.key !== key) {
-      next = { key, direction: 'asc' };
-    } else if (current.direction === 'asc') {
-      next = { key, direction: 'desc' };
+    const current = this._sorts();
+    const primary = current[0];
+    let next: SortPropDir[];
+    if (!primary || primary.prop !== key) {
+      next = [{ prop: key, dir: 'asc' }];
+    } else if (normalizeSortDir(primary.dir) === 'asc') {
+      next = [{ prop: key, dir: 'desc' }];
     } else {
-      next = null;
+      next = [];
     }
-    this.applySort(next);
+    this.applySorts(next);
   }
 
-  /** Set an exact sort state (used by externalSorting hosts). */
-  applySort(state: SortState | null): void {
-    const current = this._sort();
+  /** Replace the full sorts list (ngx SortEvent.sorts). */
+  applySorts(sorts: SortPropDir[]): void {
+    const next = normalizeSorts(sorts);
+    const prev = this._sorts();
     if (
-      current?.key === state?.key &&
-      current?.direction === state?.direction
+      prev.length === next.length &&
+      prev.every(
+        (s, i) =>
+          s.prop === next[i].prop &&
+          normalizeSortDir(s.dir) === normalizeSortDir(next[i].dir),
+      )
     ) {
       return;
     }
-    this._sort.set(state);
+    this._sorts.set(next);
     this.reloadQuery();
   }
 
+  /**
+   * Set sort from a single entry, legacy {@link SortState}, array, or null.
+   * Prefer {@link applySorts} for multi-sort hosts.
+   */
+  applySort(
+    state: SortPropDir[] | SortPropDir | SortState | null,
+  ): void {
+    this.applySorts(normalizeSorts(state));
+  }
+
   clearSort(): void {
-    this.applySort(null);
+    this.applySorts([]);
   }
 
   private reloadQuery(): void {
@@ -407,9 +440,9 @@ export class VirtualDataSource<T> {
       view = view.filter((item) => this.matchesFilter(item, query));
     }
 
-    const sort = this._sort();
-    if (sort) {
-      view = view.slice().sort((a, b) => this.compareStatic(a, b, sort));
+    const sorts = this._sorts();
+    if (sorts.length) {
+      view = view.slice().sort((a, b) => this.compareStatic(a, b, sorts));
     }
 
     this._items.set(view);
@@ -426,13 +459,18 @@ export class VirtualDataSource<T> {
     return JSON.stringify(item).toLowerCase().includes(query.toLowerCase());
   }
 
-  private compareStatic(a: T, b: T, sort: SortState): number {
-    const va = this.staticSortValue(a, sort.key);
-    const vb = this.staticSortValue(b, sort.key);
-    let cmp = 0;
-    if (va < vb) cmp = -1;
-    else if (va > vb) cmp = 1;
-    return sort.direction === 'asc' ? cmp : -cmp;
+  private compareStatic(a: T, b: T, sorts: SortPropDir[]): number {
+    for (const sort of sorts) {
+      const va = this.staticSortValue(a, sort.prop);
+      const vb = this.staticSortValue(b, sort.prop);
+      let cmp = 0;
+      if (va < vb) cmp = -1;
+      else if (va > vb) cmp = 1;
+      if (cmp !== 0) {
+        return normalizeSortDir(sort.dir) === 'asc' ? cmp : -cmp;
+      }
+    }
+    return 0;
   }
 
   private staticSortValue(item: T, key: string): string | number {
@@ -444,15 +482,18 @@ export class VirtualDataSource<T> {
   }
 
   private queryParams(): Pick<PageRequest, 'sort' | 'filter'> {
+    const sorts = this._sorts();
     return {
-      sort: this._sort(),
+      sort: sorts.length ? sorts : null,
       filter: this._filter() || undefined,
     };
   }
 
   private queryKey(): string {
-    const sort = this._sort();
-    return `${this._filter()}|${sort?.key ?? ''}|${sort?.direction ?? ''}`;
+    const sorts = this._sorts()
+      .map((s) => `${s.prop}:${normalizeSortDir(s.dir)}`)
+      .join(',');
+    return `${this._filter()}|${sorts}`;
   }
 
   patchById(id: RowId, updater: (item: T) => T): void {

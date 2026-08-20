@@ -30,6 +30,22 @@
       >
         External
       </button>
+      <button
+        type="button"
+        class="toolbar__btn toolbar__btn--ghost"
+        [class.toolbar__btn--active]="sortType() === SortType.single"
+        (click)="setSortType(SortType.single)"
+      >
+        Single
+      </button>
+      <button
+        type="button"
+        class="toolbar__btn toolbar__btn--ghost"
+        [class.toolbar__btn--active]="sortType() === SortType.multi"
+        (click)="setSortType(SortType.multi)"
+      >
+        Multi
+      </button>
     </div>
 
     <div class="toolbar__sort-mode" role="group" aria-label="Column width mode">
@@ -65,8 +81,16 @@
     <span class="toolbar__meta">
       Selected {{ dataSource.selection.count() | number }}
       · ☐ column · header select-all · ⌘/Ctrl · ⇧ · Esc
-      @if (dataSource.source.sort(); as sort) {
-        · external sort {{ sort.key }} {{ sort.direction }}
+      @if (dataSource.source.sorts(); as sorts) {
+        @if (sorts.length) {
+          · sort
+          @for (s of sorts; track s.prop; let i = $index) {
+            @if (i > 0) {
+              ,
+            }
+            {{ s.prop }} {{ s.dir }}
+          }
+        }
       }
     </span>
     <button
@@ -87,7 +111,8 @@
     [checkboxSelection]="true"
     [columnMode]="columnMode()"
     [externalSorting]="externalSorting()"
-    (sort)="onExternalSort($event)"
+    [sortType]="sortType()"
+    (sort)="onSort($event)"
     title="Desktop Virtual Table"
     ariaLabel="Patient virtual table"
   >

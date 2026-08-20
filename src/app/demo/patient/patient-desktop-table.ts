@@ -4,7 +4,8 @@ import { FormsModule } from '@angular/forms';
 import {
   ColumnMode,
   DesktopVirtualTableComponent,
-  SortState,
+  SortEvent,
+  SortType,
   VirtualCellDef,
 } from 'gnx-virtual-scroll';
 import { PATIENT_COLUMNS } from './patient.columns';
@@ -28,6 +29,7 @@ export class PatientDesktopTableComponent {
   readonly dataSource = inject(PatientVirtualDataSource);
   readonly columns = PATIENT_COLUMNS;
   readonly ColumnMode = ColumnMode;
+  readonly SortType = SortType;
   filterText = '';
 
   /**
@@ -36,15 +38,23 @@ export class PatientDesktopTableComponent {
    * - external=false → table sorts loaded rows client-side
    */
   readonly externalSorting = signal(true);
+  readonly sortType = signal<SortType>(SortType.single);
   readonly columnMode = signal<ColumnMode>(ColumnMode.force);
 
-  readonly onExternalSort = (state: SortState | null): void => {
-    this.dataSource.source.applySort(state);
+  readonly onSort = (event: SortEvent<Patient>): void => {
+    // External hosts apply the emitted sorts list
+    if (this.externalSorting()) {
+      this.dataSource.source.applySorts(event.sorts);
+    }
   };
 
   setExternalSorting(external: boolean): void {
     this.externalSorting.set(external);
-    // Clear any active sort when switching modes so state stays coherent
+    this.dataSource.source.clearSort();
+  }
+
+  setSortType(type: SortType): void {
+    this.sortType.set(type);
     this.dataSource.source.clearSort();
   }
 

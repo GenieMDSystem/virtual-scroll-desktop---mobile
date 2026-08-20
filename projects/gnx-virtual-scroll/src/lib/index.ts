@@ -13,18 +13,27 @@ export {
   resolveColumnMeta,
   totalColumnsWidth,
 } from './utils/column-layout';
-export { nextSortState, sortItemsInternal, sortValue } from './utils/sort';
+export {
+  nextSortState,
+  nextSorts,
+  normalizeSortDir,
+  normalizeSorts,
+  sortItemsInternal,
+  sortValue,
+} from './utils/sort';
 export type { ResolvedColumnWidth } from './utils/column-layout';
-export { ColumnMode } from './models/virtual-scroll.models';
+export { ColumnMode, SortDirection, SortType } from './models/virtual-scroll.models';
 export type {
   CacheStats,
   ColumnDef,
   ColumnView,
+  InnerSortEvent,
   PageRequest,
   PageResult,
   PaginationStrategy,
   RowId,
-  SortDirection,
+  SortEvent,
+  SortPropDir,
   SortState,
   VirtualCellContext,
   VirtualDataSourceConfig,

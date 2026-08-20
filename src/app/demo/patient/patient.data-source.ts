@@ -2,6 +2,7 @@ import { Injectable, signal } from '@angular/core';
 import {
   PaginationStrategy,
   SelectionModel,
+  SortPropDir,
   SortState,
   VirtualDataSource,
 } from 'gnx-virtual-scroll';
@@ -82,8 +83,12 @@ export class PatientVirtualDataSource {
     this.source.setSort(key);
   }
 
-  applySort(state: SortState | null): void {
+  applySort(state: SortPropDir | SortState | null): void {
     this.source.applySort(state);
+  }
+
+  applySorts(sorts: SortPropDir[]): void {
+    this.source.applySorts(sorts);
   }
 
   approve(id: string): void {
