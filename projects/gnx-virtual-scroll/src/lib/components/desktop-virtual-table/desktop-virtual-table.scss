@@ -110,6 +110,8 @@
 
   &--scroll {
     overflow: hidden;
+    /* Match body client width when a vertical scrollbar is present */
+    box-sizing: border-box;
     scrollbar-width: none;
 
     &::-webkit-scrollbar {
@@ -120,6 +122,7 @@
   &__inner {
     display: flex;
     height: 100%;
+    will-change: transform;
   }
 }
 
@@ -136,6 +139,13 @@
     &::-webkit-scrollbar {
       display: none;
     }
+  }
+}
+
+/* Keep wide rows from being capped by CDK's min-width:100% wrapper */
+.pane-viewport--center {
+  .cdk-virtual-scroll-content-wrapper {
+    min-width: max-content;
   }
 }
 
@@ -214,8 +224,10 @@
 .th,
 .td {
   position: relative;
+  flex: 0 0 auto;
   flex-shrink: 0;
   box-sizing: border-box;
+  min-width: 0; /* override flex min-content so header icons can't widen the column */
   padding: 0 0.75rem;
   display: flex;
   align-items: center;

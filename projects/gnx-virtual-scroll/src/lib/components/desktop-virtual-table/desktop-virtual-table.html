@@ -34,11 +34,7 @@
         <div class="pane pane--left" [style.width.px]="leftWidth()">
           <div class="pane-header">
             @if (showCheckboxColumn()) {
-              <div
-                class="th th--check"
-                [style.width.px]="checkboxColumnWidth()"
-                [style.flex-basis.px]="checkboxColumnWidth()"
-              >
+              <div class="th th--check" [style]="sizeStyle(checkboxColumnWidth())">
                 <input
                   type="checkbox"
                   class="row-check"
@@ -62,7 +58,7 @@
                 [class.th--sorted]="sortDirection(col.key)"
                 [class.th--resizing]="resizingKey() === col.key"
                 [class.th--freeze-edge]="$last"
-                [style.width.px]="col.width"
+                [style]="sizeStyle(col.width)"
               >
                 <span class="th__label">{{ col.header }}</span>
                 <span class="th__pin" title="Frozen left">Pin</span>
@@ -100,11 +96,7 @@
               (mousedown)="$event.shiftKey && $event.preventDefault()"
             >
               @if (showCheckboxColumn()) {
-                <div
-                  class="td td--check"
-                  [style.width.px]="checkboxColumnWidth()"
-                  [style.flex-basis.px]="checkboxColumnWidth()"
-                >
+                <div class="td td--check" [style]="sizeStyle(checkboxColumnWidth())">
                   @if (row; as item) {
                     <input
                       type="checkbox"
@@ -121,7 +113,7 @@
                   <div
                     class="td"
                     [class.td--freeze-edge]="$last"
-                    [style.width.px]="col.width"
+                    [style]="sizeStyle(col.width)"
                     role="cell"
                   >
                     @if (cellTemplateMap().get(col.key); as tpl) {
@@ -135,7 +127,7 @@
                 }
               } @else {
                 @for (col of leftCols(); track col.key) {
-                  <div class="td td--skeleton" [style.width.px]="col.width">
+                  <div class="td td--skeleton" [style]="sizeStyle(col.width)">
                     <span class="skeleton-bar"></span>
                   </div>
                 }
@@ -147,13 +139,17 @@
 
       <div class="pane pane--center">
         <div class="pane-header pane-header--scroll" #centerHeader>
-          <div class="pane-header__inner" [style.width.px]="centerWidth()">
+          <div
+            class="pane-header__inner"
+            #centerHeaderInner
+            [style.width.px]="centerWidth()"
+          >
             @for (col of centerCols(); track col.key) {
               <div
                 class="th"
                 [class.th--sorted]="sortDirection(col.key)"
                 [class.th--resizing]="resizingKey() === col.key"
-                [style.width.px]="col.width"
+                [style]="sizeStyle(col.width)"
               >
                 <span class="th__label">{{ col.header }}</span>
                 @if (col.sortable) {
@@ -193,7 +189,7 @@
           >
             @if (row; as item) {
               @for (col of centerCols(); track col.key) {
-                <div class="td" [style.width.px]="col.width" role="cell">
+                <div class="td" [style]="sizeStyle(col.width)" role="cell">
                   @if (cellTemplateMap().get(col.key); as tpl) {
                     <ng-container
                       *ngTemplateOutlet="tpl; context: { $implicit: item, row: item, column: col }"
@@ -205,7 +201,7 @@
               }
             } @else {
               @for (col of centerCols(); track col.key) {
-                <div class="td td--skeleton" [style.width.px]="col.width">
+                <div class="td td--skeleton" [style]="sizeStyle(col.width)">
                   <span class="skeleton-bar"></span>
                 </div>
               }
@@ -223,7 +219,7 @@
                 [class.th--sorted]="sortDirection(col.key)"
                 [class.th--resizing]="resizingKey() === col.key"
                 [class.th--freeze-edge]="$first"
-                [style.width.px]="col.width"
+                [style]="sizeStyle(col.width)"
               >
                 <span class="th__label">{{ col.header }}</span>
                 <span class="th__pin th__pin--right" title="Frozen right">Pin</span>
@@ -266,7 +262,7 @@
                     class="td"
                     [class.td--freeze-edge]="$first"
                     [class.td--actions]="col.cellClass === 'td--actions'"
-                    [style.width.px]="col.width"
+                    [style]="sizeStyle(col.width)"
                     role="cell"
                   >
                     @if (cellTemplateMap().get(col.key); as tpl) {
@@ -280,7 +276,7 @@
                 }
               } @else {
                 @for (col of rightCols(); track col.key) {
-                  <div class="td td--skeleton" [style.width.px]="col.width">
+                  <div class="td td--skeleton" [style]="sizeStyle(col.width)">
                     <span class="skeleton-bar"></span>
                   </div>
                 }

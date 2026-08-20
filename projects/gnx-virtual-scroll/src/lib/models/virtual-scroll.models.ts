@@ -73,6 +73,7 @@ export interface ColumnDef<T = unknown> {
   width: number;
   /** Clamp when resizing or fitting to container */
   minWidth?: number;
+  /** Max width while resizing (default 1000px if omitted) */
   maxWidth?: number;
   frozen?: FreezeSide;
   /** When false, hide resize handle (default true) */

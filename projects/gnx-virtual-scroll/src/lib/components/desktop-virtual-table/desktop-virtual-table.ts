@@ -91,6 +91,8 @@ export class DesktopVirtualTableComponent<T> implements AfterViewInit {
 
   @ViewChild('tableFrame') private tableFrame!: ElementRef<HTMLElement>;
   @ViewChild('centerHeader') private centerHeader!: ElementRef<HTMLElement>;
+  @ViewChild('centerHeaderInner')
+  private centerHeaderInner!: ElementRef<HTMLElement>;
   @ViewChild('centerViewport') private centerVp!: CdkVirtualScrollViewport;
   @ViewChildren(CdkVirtualScrollViewport)
   private viewports!: QueryList<CdkVirtualScrollViewport>;
@@ -104,6 +106,20 @@ export class DesktopVirtualTableComponent<T> implements AfterViewInit {
   private resizeSession: ResizeSession | null = null;
   private frameObserver: ResizeObserver | null = null;
   private syncingVertical = false;
+
+  /**
+   * Exact flex cell size so header (PIN/sort) and body cells share the same
+   * width — prevents vertical grid lines drifting while scrolling.
+   */
+  sizeStyle(width: number): Record<string, string> {
+    const px = `${Math.round(width)}px`;
+    return {
+      flex: `0 0 ${px}`,
+      width: px,
+      'min-width': px,
+      'max-width': px,
+    };
+  }
 
   readonly activeSort = computed(() =>
     this.externalSorting()
@@ -249,6 +265,12 @@ export class DesktopVirtualTableComponent<T> implements AfterViewInit {
       ),
     );
     this.baseWidths.update((widths) => ({ ...widths, [session.key]: next }));
+    queueMicrotask(() => {
+      const el = this.centerVp?.elementRef.nativeElement;
+      if (el) {
+        this.syncCenterHeaderX(el.scrollLeft);
+      }
+    });
   };
 
   private readonly onPointerUp = (): void => {
@@ -268,12 +290,9 @@ export class DesktopVirtualTableComponent<T> implements AfterViewInit {
 
     const onCenterScroll = (): void => {
       const top = center.measureScrollOffset('top');
-      const left = center.measureScrollOffset('left');
+      const left = center.elementRef.nativeElement.scrollLeft;
 
-      const header = this.centerHeader?.nativeElement;
-      if (header && header.scrollLeft !== left) {
-        header.scrollLeft = left;
-      }
+      this.syncCenterHeaderX(left);
 
       if (!this.syncingVertical) {
         this.syncingVertical = true;
@@ -331,7 +350,11 @@ export class DesktopVirtualTableComponent<T> implements AfterViewInit {
     if (!meta || !meta.resizable) {
       return;
     }
-    const current = this.liveWidths()[key] ?? meta.width;
+    // Commit on-screen widths so leftover flex is not redistributed away
+    // from siblings while this column grows.
+    const live = this.liveWidths();
+    this.baseWidths.set({ ...live });
+    const current = live[key] ?? meta.width;
     this.resizeSession = {
       key,
       startX: event.clientX,
@@ -414,10 +437,19 @@ export class DesktopVirtualTableComponent<T> implements AfterViewInit {
       event.preventDefault();
     }
 
-    sel.handleClick(row, this.displayItems(), index, {
+    const mods = {
       shiftKey: event.shiftKey,
       metaOrCtrl: event.metaKey || event.ctrlKey,
-    });
+    };
+
+    // With checkbox column: plain click adds the row (does not clear others).
+    // Shift / Ctrl|Cmd keep range / toggle behavior.
+    if (this.showCheckboxColumn() && !mods.shiftKey && !mods.metaOrCtrl) {
+      sel.select(row);
+      return;
+    }
+
+    sel.handleClick(row, this.displayItems(), index, mods);
   }
 
   onTableKeydown(event: KeyboardEvent): void {
@@ -446,6 +478,23 @@ export class DesktopVirtualTableComponent<T> implements AfterViewInit {
       return value.toLocaleDateString();
     }
     return String(value);
+  }
+
+  /**
+   * Drive header X from body scroll via transform (avoids scrollLeft clamping
+   * / scrollbar-gutter mismatch between header and viewport).
+   */
+  private syncCenterHeaderX(scrollLeft: number): void {
+    const header = this.centerHeader?.nativeElement;
+    const inner = this.centerHeaderInner?.nativeElement;
+    const viewport = this.centerVp?.elementRef.nativeElement;
+    if (!header || !inner || !viewport) {
+      return;
+    }
+    const scrollbar = Math.max(0, viewport.offsetWidth - viewport.clientWidth);
+    header.style.paddingRight = scrollbar ? `${scrollbar}px` : '';
+    inner.style.transform =
+      scrollLeft === 0 ? '' : `translate3d(${-scrollLeft}px, 0, 0)`;
   }
 
   private ensureBaseWidths(

@@ -11,7 +11,8 @@ export interface ResolvedColumnWidth {
 }
 
 const DEFAULT_MIN = 64;
-const DEFAULT_MAX = 640;
+/** Default resize/fit ceiling when ColumnDef.maxWidth is omitted */
+const DEFAULT_MAX = 1000;
 
 export function resolveColumnMeta<T>(col: ColumnDef<T>): ResolvedColumnWidth {
   const minWidth = col.minWidth ?? Math.min(col.width, DEFAULT_MIN);
@@ -31,9 +32,11 @@ export function resolveColumnMeta<T>(col: ColumnDef<T>): ResolvedColumnWidth {
 
 /**
  * Applies base (user/preferred) widths, then grows flex columns so the table
- * fills the parent when there is leftover space. When the parent shrinks,
- * flex columns compress toward minWidth; frozen (flex:0) stay put unless
- * their mins force horizontal overflow.
+ * fills the parent when there is leftover space.
+ *
+ * Never shrinks sibling columns when preferred widths exceed the container —
+ * overflow is handled by horizontal scroll. That way dragging one column
+ * wider only grows that column.
  */
 export function fitColumnsToContainer(
   metas: ResolvedColumnWidth[],
@@ -50,8 +53,7 @@ export function fitColumnsToContainer(
     return roundWidths(metas, widths);
   }
 
-  const sum = () => metas.reduce((s, m) => s + widths[m.key], 0);
-  let total = sum();
+  const total = metas.reduce((s, m) => s + widths[m.key], 0);
 
   if (total < containerWidth) {
     let leftover = containerWidth - total;
@@ -60,7 +62,7 @@ export function fitColumnsToContainer(
     );
     const flexSum = growers.reduce((s, m) => s + m.flex, 0);
     if (flexSum > 0 && leftover > 0) {
-      // Two-pass proportional grow respecting maxWidth
+      // Proportional grow respecting maxWidth
       let remainingFlex = flexSum;
       let remainingSpace = leftover;
       for (const m of growers) {
@@ -73,24 +75,9 @@ export function fitColumnsToContainer(
         remainingFlex -= m.flex;
       }
     }
-    return roundWidths(metas, widths);
   }
 
-  if (total > containerWidth) {
-    let overflow = total - containerWidth;
-    const shrinkers = [...metas]
-      .filter((m) => m.flex > 0 && widths[m.key] > m.minWidth)
-      .sort((a, b) => b.flex - a.flex);
-
-    for (const m of shrinkers) {
-      if (overflow <= 0) break;
-      const reducible = widths[m.key] - m.minWidth;
-      const delta = Math.min(reducible, overflow);
-      widths[m.key] -= delta;
-      overflow -= delta;
-    }
-  }
-
+  // total > containerWidth → keep preferred widths; do not compress siblings
   return roundWidths(metas, widths);
 }
 

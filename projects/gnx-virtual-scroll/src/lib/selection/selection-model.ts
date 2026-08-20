@@ -13,6 +13,9 @@ export interface SelectionClickModifiers {
  * - Click → select only that row (new anchor)
  * - Ctrl / Cmd + Click → toggle that row (new anchor)
  * - Shift + Click → select range from anchor → clicked (anchor kept)
+ *
+ * When the table shows a checkbox column, the host typically uses
+ * {@link select} for plain clicks so existing picks are kept.
  */
 export class SelectionModel<T> {
   private readonly trackBy: (item: T) => RowId;
