@@ -1,15 +1,28 @@
 import { computed, signal } from '@angular/core';
 import { RowId } from '../models/virtual-scroll.models';
 
-/** Lightweight selection model for virtualized rows (id-based). */
+export interface SelectionClickModifiers {
+  shiftKey: boolean;
+  /** Cmd on macOS, Ctrl on Windows/Linux */
+  metaOrCtrl: boolean;
+}
+
+/**
+ * Desktop-style multi-select for virtualized rows (id-based).
+ *
+ * - Click → select only that row (new anchor)
+ * - Ctrl / Cmd + Click → toggle that row (new anchor)
+ * - Shift + Click → select range from anchor → clicked (anchor kept)
+ */
 export class SelectionModel<T> {
   private readonly trackBy: (item: T) => RowId;
   private readonly _ids = signal<Set<RowId>>(new Set());
-  private readonly _anchor = signal<RowId | null>(null);
+  private readonly _anchorId = signal<RowId | null>(null);
 
   readonly ids = this._ids.asReadonly();
   readonly count = computed(() => this._ids().size);
   readonly isEmpty = computed(() => this._ids().size === 0);
+  readonly anchorId = this._anchorId.asReadonly();
 
   constructor(trackBy: (item: T) => RowId) {
     this.trackBy = trackBy;
@@ -23,6 +36,36 @@ export class SelectionModel<T> {
     return this._ids().has(id);
   }
 
+  /**
+   * PC / Finder style pointer selection against the current visible/ordered list.
+   * `items` must be the same order the user sees (e.g. displayItems()).
+   */
+  handleClick(
+    item: T,
+    items: Array<T | null>,
+    index: number,
+    mods: SelectionClickModifiers,
+  ): void {
+    if (mods.shiftKey) {
+      this.selectRangeTo(item, items, index);
+      return;
+    }
+
+    if (mods.metaOrCtrl) {
+      this.toggle(item);
+      return;
+    }
+
+    this.selectOnly(item);
+  }
+
+  /** Clear all, select one row, set anchor. */
+  selectOnly(item: T): void {
+    const id = this.trackBy(item);
+    this._ids.set(new Set([id]));
+    this._anchorId.set(id);
+  }
+
   toggle(item: T): void {
     const id = this.trackBy(item);
     this._ids.update((set) => {
@@ -34,13 +77,13 @@ export class SelectionModel<T> {
       }
       return next;
     });
-    this._anchor.set(id);
+    this._anchorId.set(id);
   }
 
   select(item: T): void {
     const id = this.trackBy(item);
     this._ids.update((set) => new Set(set).add(id));
-    this._anchor.set(id);
+    this._anchorId.set(id);
   }
 
   deselect(item: T): void {
@@ -54,7 +97,7 @@ export class SelectionModel<T> {
 
   clear(): void {
     this._ids.set(new Set());
-    this._anchor.set(null);
+    this._anchorId.set(null);
   }
 
   selectMany(items: T[]): void {
@@ -65,5 +108,61 @@ export class SelectionModel<T> {
       }
       return next;
     });
+  }
+
+  /** Select every non-null row in the current list (e.g. Ctrl/Cmd+A). */
+  selectAll(items: Array<T | null>): void {
+    const next = new Set<RowId>();
+    for (const item of items) {
+      if (item) {
+        next.add(this.trackBy(item));
+      }
+    }
+    this._ids.set(next);
+  }
+
+  /**
+   * Shift-click: select contiguous range from anchor → target.
+   * If no anchor yet, behaves like selectOnly.
+   * Anchor is not moved (same as Explorer / Finder).
+   */
+  selectRangeTo(item: T, items: Array<T | null>, toIndex: number): void {
+    const anchor = this._anchorId();
+    if (anchor == null) {
+      this.selectOnly(item);
+      return;
+    }
+
+    let fromIndex = items.findIndex(
+      (row) => row != null && this.trackBy(row) === anchor,
+    );
+
+    // Anchor scrolled out / not in current list → use clicked row only
+    if (fromIndex < 0) {
+      this.selectOnly(item);
+      return;
+    }
+
+    // Prefer the index from the click when it matches the item
+    if (toIndex < 0 || toIndex >= items.length || items[toIndex] !== item) {
+      toIndex = items.findIndex(
+        (row) => row != null && this.trackBy(row) === this.trackBy(item),
+      );
+    }
+    if (toIndex < 0) {
+      this.selectOnly(item);
+      return;
+    }
+
+    const start = Math.min(fromIndex, toIndex);
+    const end = Math.max(fromIndex, toIndex);
+    const next = new Set<RowId>();
+    for (let i = start; i <= end; i++) {
+      const row = items[i];
+      if (row) {
+        next.add(this.trackBy(row));
+      }
+    }
+    this._ids.set(next);
   }
 }

@@ -342,15 +342,39 @@ export class DesktopVirtualTableComponent<T> implements AfterViewInit {
     return this.selection()?.isSelected(row) ?? false;
   }
 
-  onRowClick(row: T, event: MouseEvent): void {
+  onRowClick(row: T, index: number, event: MouseEvent): void {
     const sel = this.selection();
     if (!sel) {
       return;
     }
-    if ((event.target as HTMLElement).closest('button, a, input')) {
+    if ((event.target as HTMLElement).closest('button, a, input, .sort-btn, .col-resizer')) {
       return;
     }
-    sel.toggle(row);
+
+    // Avoid native text selection while shift-dragging a range
+    if (event.shiftKey) {
+      event.preventDefault();
+    }
+
+    sel.handleClick(row, this.displayItems(), index, {
+      shiftKey: event.shiftKey,
+      metaOrCtrl: event.metaKey || event.ctrlKey,
+    });
+  }
+
+  onTableKeydown(event: KeyboardEvent): void {
+    const sel = this.selection();
+    if (!sel) {
+      return;
+    }
+    const metaOrCtrl = event.metaKey || event.ctrlKey;
+    if (metaOrCtrl && (event.key === 'a' || event.key === 'A')) {
+      event.preventDefault();
+      sel.selectAll(this.displayItems());
+    }
+    if (event.key === 'Escape') {
+      sel.clear();
+    }
   }
 
   cellText(row: T, col: ColumnDef<T> | ColumnView<T>): string {

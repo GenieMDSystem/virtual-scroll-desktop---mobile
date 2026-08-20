@@ -145,6 +145,8 @@
   box-sizing: border-box;
   border-bottom: 1px solid var(--row-border);
   background: var(--surface);
+  cursor: default;
+  user-select: none;
 
   &:hover {
     background: var(--row-hover);

@@ -36,6 +36,7 @@
 
     <span class="toolbar__meta">
       Selected {{ dataSource.selection.count() | number }}
+      · click · ⌘/Ctrl+click · ⇧ click · ⌘/Ctrl+A · Esc
       @if (dataSource.source.sort(); as sort) {
         · external sort {{ sort.key }} {{ sort.direction }}
       }

@@ -27,6 +27,7 @@
     role="region"
     [attr.aria-label]="ariaLabel()"
     tabindex="0"
+    (keydown)="onTableKeydown($event)"
   >
     <div class="panes">
       @if (leftCols().length) {
@@ -67,12 +68,13 @@
           >
             <div
               class="table-row"
-              *cdkVirtualFor="let row of displayItems(); trackBy: dataSource().trackByIndex"
+              *cdkVirtualFor="let row of displayItems(); trackBy: dataSource().trackByIndex; let i = index"
               [class.table-row--selected]="row && isSelected(row)"
               [style.height.px]="rowHeight()"
               [style.width.px]="leftWidth()"
               role="row"
-              (click)="row && onRowClick(row, $event)"
+              (click)="row && onRowClick(row, i, $event)"
+              (mousedown)="$event.shiftKey && $event.preventDefault()"
             >
               @if (row; as item) {
                 @for (col of leftCols(); track col.key) {
@@ -141,12 +143,13 @@
         >
           <div
             class="table-row"
-            *cdkVirtualFor="let row of displayItems(); trackBy: dataSource().trackByIndex"
+            *cdkVirtualFor="let row of displayItems(); trackBy: dataSource().trackByIndex; let i = index"
             [class.table-row--selected]="row && isSelected(row)"
             [style.height.px]="rowHeight()"
             [style.width.px]="centerWidth()"
             role="row"
-            (click)="row && onRowClick(row, $event)"
+            (click)="row && onRowClick(row, i, $event)"
+            (mousedown)="$event.shiftKey && $event.preventDefault()"
           >
             @if (row; as item) {
               @for (col of centerCols(); track col.key) {
@@ -209,12 +212,13 @@
           >
             <div
               class="table-row"
-              *cdkVirtualFor="let row of displayItems(); trackBy: dataSource().trackByIndex"
+              *cdkVirtualFor="let row of displayItems(); trackBy: dataSource().trackByIndex; let i = index"
               [class.table-row--selected]="row && isSelected(row)"
               [style.height.px]="rowHeight()"
               [style.width.px]="rightWidth()"
               role="row"
-              (click)="row && onRowClick(row, $event)"
+              (click)="row && onRowClick(row, i, $event)"
+              (mousedown)="$event.shiftKey && $event.preventDefault()"
             >
               @if (row; as item) {
                 @for (col of rightCols(); track col.key) {
