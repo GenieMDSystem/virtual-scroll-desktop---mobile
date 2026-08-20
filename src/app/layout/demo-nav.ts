@@ -40,4 +40,9 @@ export const DEMO_NAV: DemoNavItem[] = [
     label: 'Selection',
     blurb: 'Checkbox column, select-all, range select',
   },
+  {
+    path: 'custom-templates',
+    label: 'Custom templates',
+    blurb: 'User-defined cell & header templates',
+  },
 ];

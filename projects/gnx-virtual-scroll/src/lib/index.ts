@@ -4,6 +4,7 @@ export { SelectionModel } from './selection/selection-model';
 export { DesktopVirtualTableComponent } from './components/desktop-virtual-table/desktop-virtual-table';
 export { MobileVirtualListComponent } from './components/mobile-virtual-list/mobile-virtual-list';
 export { VirtualCellDef } from './directives/virtual-cell.directive';
+export { VirtualHeaderDef } from './directives/virtual-header.directive';
 export { VirtualItemDef } from './directives/virtual-item.directive';
 export {
   buildColumnViews,
@@ -39,5 +40,6 @@ export type {
   VirtualDataSourceConfig,
   VirtualFetchFn,
   VirtualFilterFn,
+  VirtualHeaderContext,
   VirtualItemContext,
 } from './models/virtual-scroll.models';

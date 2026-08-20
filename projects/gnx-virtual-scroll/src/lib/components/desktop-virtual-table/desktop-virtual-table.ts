@@ -22,6 +22,7 @@ import {
 } from '@angular/cdk/scrolling';
 import { VirtualDataSource } from '../../data-source/virtual-data-source';
 import { VirtualCellDef } from '../../directives/virtual-cell.directive';
+import { VirtualHeaderDef } from '../../directives/virtual-header.directive';
 import {
   ColumnDef,
   ColumnMode,
@@ -31,6 +32,8 @@ import {
   SortEvent,
   SortPropDir,
   SortType,
+  VirtualCellContext,
+  VirtualHeaderContext,
 } from '../../models/virtual-scroll.models';
 import { SelectionModel } from '../../selection/selection-model';
 import {
@@ -123,6 +126,7 @@ export class DesktopVirtualTableComponent<T> implements AfterViewInit {
   readonly sortChange = input<(event: SortEvent<T>) => void>(() => undefined);
 
   readonly cellDefs = contentChildren(VirtualCellDef);
+  readonly headerDefs = contentChildren(VirtualHeaderDef);
 
   @ViewChild('tableFrame') private tableFrame!: ElementRef<HTMLElement>;
   @ViewChild('centerHeader') private centerHeader!: ElementRef<HTMLElement>;
@@ -295,6 +299,14 @@ export class DesktopVirtualTableComponent<T> implements AfterViewInit {
   readonly cellTemplateMap = computed(() => {
     const map = new Map<string, VirtualCellDef<T>['templateRef']>();
     for (const def of this.cellDefs()) {
+      map.set(def.column(), def.templateRef);
+    }
+    return map;
+  });
+
+  readonly headerTemplateMap = computed(() => {
+    const map = new Map<string, VirtualHeaderDef<T>['templateRef']>();
+    for (const def of this.headerDefs()) {
       map.set(def.column(), def.templateRef);
     }
     return map;
@@ -585,9 +597,7 @@ export class DesktopVirtualTableComponent<T> implements AfterViewInit {
   }
 
   cellText(row: T, col: ColumnDef<T> | ColumnView<T>): string {
-    const value = col.valueAccessor
-      ? col.valueAccessor(row)
-      : (row as Record<string, unknown>)[col.key];
+    const value = this.cellValue(row, col);
     if (value == null) {
       return '';
     }
@@ -595,6 +605,32 @@ export class DesktopVirtualTableComponent<T> implements AfterViewInit {
       return value.toLocaleDateString();
     }
     return String(value);
+  }
+
+  /** Raw cell value for templates (ngx `let-value`). */
+  cellValue(row: T, col: ColumnDef<T> | ColumnView<T>): unknown {
+    return col.valueAccessor
+      ? col.valueAccessor(row)
+      : (row as Record<string, unknown>)[col.key];
+  }
+
+  /** Context object for {@link VirtualCellDef} outlets. */
+  cellContext(
+    row: T,
+    col: ColumnView<T>,
+    index: number,
+  ): VirtualCellContext<T> {
+    return {
+      $implicit: row,
+      row,
+      value: this.cellValue(row, col),
+      column: col,
+      index,
+    };
+  }
+
+  headerContext(col: ColumnView<T>): VirtualHeaderContext<T> {
+    return { $implicit: col, column: col };
   }
 
   /**

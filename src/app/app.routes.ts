@@ -42,6 +42,13 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./pages/selection.page').then((m) => m.SelectionPage),
       },
+      {
+        path: 'custom-templates',
+        loadComponent: () =>
+          import('./pages/custom-templates.page').then(
+            (m) => m.CustomTemplatesPage,
+          ),
+      },
     ],
   },
   { path: '**', redirectTo: 'responsive' },

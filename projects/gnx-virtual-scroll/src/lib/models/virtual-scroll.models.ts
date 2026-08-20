@@ -148,10 +148,18 @@ export interface ColumnView<T = unknown> extends ColumnDef<T> {
 }
 
 export interface VirtualCellContext<T> {
+  /** Same as {@link row} — ngx-datatable `$implicit` style */
   $implicit: T;
   row: T;
+  /** Resolved cell value (valueAccessor or row[column.key]) — ngx `let-value` */
+  value: unknown;
   column: ColumnView<T>;
   index: number;
+}
+
+export interface VirtualHeaderContext<T = unknown> {
+  $implicit: ColumnView<T>;
+  column: ColumnView<T>;
 }
 
 export interface VirtualItemContext<T> {
@@ -161,6 +169,10 @@ export interface VirtualItemContext<T> {
 }
 
 export type CellTemplateMap<T> = Map<string, TemplateRef<VirtualCellContext<T>>>;
+export type HeaderTemplateMap<T> = Map<
+  string,
+  TemplateRef<VirtualHeaderContext<T>>
+>;
 
 export interface CacheStats {
   pageCount: number;

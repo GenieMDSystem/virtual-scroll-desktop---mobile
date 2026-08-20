@@ -64,7 +64,15 @@
                 [class.th--freeze-edge]="$last"
                 [style]="sizeStyle(col.width)"
               >
-                <span class="th__label">{{ col.header }}</span>
+                <span class="th__label">
+                  @if (headerTemplateMap().get(col.key); as hdr) {
+                    <ng-container
+                      *ngTemplateOutlet="hdr; context: headerContext(col)"
+                    />
+                  } @else {
+                    {{ col.header }}
+                  }
+                </span>
                 <span class="th__pin" title="Frozen left">Pin</span>
                 @if (col.sortable) {
                   <ng-container
@@ -124,7 +132,7 @@
                   >
                     @if (cellTemplateMap().get(col.key); as tpl) {
                       <ng-container
-                        *ngTemplateOutlet="tpl; context: { $implicit: item, row: item, column: col }"
+                        *ngTemplateOutlet="tpl; context: cellContext(item, col, i)"
                       />
                     } @else {
                       {{ cellText(item, col) }}
@@ -157,7 +165,15 @@
                 [class.th--resizing]="resizingKey() === col.key"
                 [style]="sizeStyle(col.width)"
               >
-                <span class="th__label">{{ col.header }}</span>
+                <span class="th__label">
+                  @if (headerTemplateMap().get(col.key); as hdr) {
+                    <ng-container
+                      *ngTemplateOutlet="hdr; context: headerContext(col)"
+                    />
+                  } @else {
+                    {{ col.header }}
+                  }
+                </span>
                 @if (col.sortable) {
                   <ng-container
                     *ngTemplateOutlet="sortBtn; context: { $implicit: col }"
@@ -200,7 +216,7 @@
                 <div class="td" [style]="sizeStyle(col.width)" role="cell">
                   @if (cellTemplateMap().get(col.key); as tpl) {
                     <ng-container
-                      *ngTemplateOutlet="tpl; context: { $implicit: item, row: item, column: col }"
+                      *ngTemplateOutlet="tpl; context: cellContext(item, col, i)"
                     />
                   } @else {
                     {{ cellText(item, col) }}
@@ -229,7 +245,15 @@
                 [class.th--freeze-edge]="$first"
                 [style]="sizeStyle(col.width)"
               >
-                <span class="th__label">{{ col.header }}</span>
+                <span class="th__label">
+                  @if (headerTemplateMap().get(col.key); as hdr) {
+                    <ng-container
+                      *ngTemplateOutlet="hdr; context: headerContext(col)"
+                    />
+                  } @else {
+                    {{ col.header }}
+                  }
+                </span>
                 <span class="th__pin th__pin--right" title="Frozen right">Pin</span>
                 @if (col.sortable) {
                   <ng-container
@@ -277,7 +301,7 @@
                   >
                     @if (cellTemplateMap().get(col.key); as tpl) {
                       <ng-container
-                        *ngTemplateOutlet="tpl; context: { $implicit: item, row: item, column: col }"
+                        *ngTemplateOutlet="tpl; context: cellContext(item, col, i)"
                       />
                     } @else {
                       {{ cellText(item, col) }}

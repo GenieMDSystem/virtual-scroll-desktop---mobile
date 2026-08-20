@@ -1,0 +1,118 @@
+.tpl-demo {
+  min-height: 0;
+}
+
+.tpl-demo__table {
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+}
+
+.hdr-with-hint {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  line-height: 1.2;
+
+  em {
+    font-size: 0.7rem;
+    font-style: normal;
+    font-weight: 600;
+    color: var(--muted);
+  }
+}
+
+.cell-user {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-width: 0;
+}
+
+.cell-user__avatar {
+  flex-shrink: 0;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #163a5c;
+  background: #d6e4f2;
+
+  &[data-tone='b'] {
+    color: #15532c;
+    background: #d5ecd9;
+  }
+
+  &[data-tone='c'] {
+    color: #5a4014;
+    background: #f0e4c8;
+  }
+}
+
+.cell-user__name {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.notes {
+  color: var(--muted);
+}
+
+.status {
+  text-transform: capitalize;
+  font-size: 0.8125rem;
+  font-weight: 650;
+  padding: 0.2rem 0.55rem;
+  border-radius: 4px;
+  background: #dce6f0;
+  color: #1a334d;
+
+  &[data-status='approved'] {
+    background: #d5ecd9;
+    color: #15532c;
+  }
+
+  &[data-status='rejected'] {
+    background: #f3d6d6;
+    color: #7a2222;
+  }
+
+  &[data-status='pending'] {
+    background: #dce6f0;
+    color: #1a334d;
+  }
+}
+
+.cell-actions {
+  display: flex;
+  gap: 0.35rem;
+  align-items: center;
+}
+
+.btn {
+  appearance: none;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 650;
+  padding: 0.3rem 0.55rem;
+  border-radius: 4px;
+  cursor: pointer;
+
+  &--primary {
+    background: #1f4d7a;
+    border-color: #1f4d7a;
+    color: #fff;
+  }
+
+  &--ghost:hover {
+    background: var(--row-hover);
+  }
+}
