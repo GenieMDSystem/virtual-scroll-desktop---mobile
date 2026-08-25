@@ -1,21 +1,33 @@
-<div class="mobile-shell">
-  <header class="mobile-shell__meta">
-    <div>
-      <h2>{{ title() }}</h2>
-      <p>
-        {{ dataSource().totalCount() | number }} total ·
-        loaded {{ dataSource().loadedCount() | number }} ·
-        item {{ itemSize() }}px ·
-        {{ dataSource().strategy }}
-      </p>
-    </div>
-    @if (dataSource().loading()) {
-      <span class="pill">Loading…</span>
-    }
-  </header>
+<div
+  class="mobile-shell"
+  #shell
+  [class.mobile-shell--fit]="fitToContent()"
+  [class.mobile-shell--no-meta]="!showMeta()"
+>
+  @if (showMeta()) {
+    <header class="mobile-shell__meta" #meta>
+      <div>
+        <h2>{{ title() }}</h2>
+        <p>
+          {{ dataSource().totalCount() | number }} total ·
+          loaded {{ dataSource().loadedCount() | number }} ·
+          item {{ itemSize() }}px ·
+          {{ dataSource().strategy }}
+          @if (fitToContent()) {
+            · fit
+          }
+        </p>
+      </div>
+      @if (dataSource().loading()) {
+        <span class="pill">Loading…</span>
+      }
+    </header>
+  }
 
   <cdk-virtual-scroll-viewport
     class="list-viewport"
+    [class.list-viewport--fit]="fitToContent() && isFitted()"
+    [style.height.px]="fitToContent() ? viewportHeightPx() : null"
     [itemSize]="itemSize()"
     [minBufferPx]="itemSize() * 4"
     [maxBufferPx]="itemSize() * 8"
