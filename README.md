@@ -28,7 +28,7 @@ Demo already imports `gnx-virtual-scroll` via `tsconfig.json` paths.
 ```bash
 npm run pack:lib
 # copy dist/gnx-virtual-scroll/*.tgz to your app
-npm install ./gnx-virtual-scroll-0.1.1.tgz
+npm install ./gnx-virtual-scroll-0.2.0.tgz
 npm install @angular/cdk   # use ^19 / ^20 / ^21 to match your Angular
 ```
 

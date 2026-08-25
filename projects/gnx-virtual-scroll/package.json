@@ -1,7 +1,7 @@
 {
   "name": "gnx-virtual-scroll",
-  "version": "0.1.1",
-  "description": "Enterprise Angular CDK virtual scroll — desktop table, mobile list, pagination, cache, frozen columns, sort",
+  "version": "0.2.0",
+  "description": "Enterprise Angular CDK virtual scroll — desktop table, mobile list, pagination, cache, frozen columns, sort, selection, templates",
   "license": "MIT",
   "keywords": [
     "angular",
